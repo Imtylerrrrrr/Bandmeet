@@ -6,3 +6,13 @@ export interface Cell {
   hour: number;
   tier: Tier;
 }
+
+/** 예외 tier. null = 그날 그 시간 '불가'(템플릿 덮어쓰기). */
+export type ExcTier = Tier | null;
+
+/** 날짜별 예외 한 칸. date = 'YYYY-MM-DD'. */
+export interface ExceptionCell {
+  date: string;
+  hour: number;
+  tier: ExcTier;
+}
