@@ -31,6 +31,8 @@ export const orgs = pgTable('orgs', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   plan: planEnum('plan').notNull().default('free'),
+  // 부원이 가입할 때 입력하는 초대 코드(앱에서 생성, 동아리당 1개).
+  inviteCode: text('invite_code').notNull().unique(),
   createdAt: createdAt(),
 });
 

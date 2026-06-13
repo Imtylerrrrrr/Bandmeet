@@ -15,6 +15,13 @@
       "when": 1781380713930,
       "tag": "0001_rls_and_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781385686644,
+      "tag": "0002_org_invite_code",
+      "breakpoints": true
     }
   ]
 }

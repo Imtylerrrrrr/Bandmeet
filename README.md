@@ -40,12 +40,13 @@
 
 ## 상태
 
-🚧 빌드 진행 중 — **1~3단계 코드 완료**(Scaffold · 스키마+RLS · 인증). DB 연결·마이그레이션 적용 전.
+🚧 빌드 진행 중 — **1~4단계 완료**(Scaffold · 스키마+RLS · 인증 · 구조 CRUD). DB 마이그레이션 적용 + 라이브 스모크 검증 완료.
 
 - ✅ **Scaffold** — Next 16(App Router/TS) + Tailwind v4 + Drizzle + Supabase SSR 클라이언트 + env 템플릿
-- ✅ **스키마 + RLS** — 16개 테이블 Drizzle 스키마, 마이그레이션 SQL(`drizzle/0000`), 멀티테넌트 RLS 정책 + 카카오 가입 트리거(`drizzle/0001`)
-- ✅ **인증** — Supabase 미들웨어 세션 + 카카오 OAuth 라우트 + 역할 가드(`requireRole`)
-- ⏳ **다음(차단됨):** Supabase 프로젝트 생성 + `.env.local` 작성 + `drizzle-kit migrate` + 카카오 OAuth 키 등록 → 이후 4단계(구조 CRUD)부터 재개
+- ✅ **스키마 + RLS** — 16개 테이블 Drizzle 스키마, 마이그레이션(`drizzle/0000·0001·0002`), 멀티테넌트 RLS 22정책 + 카카오 가입 트리거. **라이브 DB 적용 완료.**
+- ✅ **인증 + org 컨텍스트** — 미들웨어 세션 + 카카오 OAuth 라우트 + 역할 가드 + 온보딩(동아리 생성/초대코드 가입) + 활성 org 스위처
+- ✅ **구조 CRUD** — 공연/팀/곡/곡-사람 배치(★ 매트릭스) + 멤버 관리. 운영진/부원 역할 가드. 라이브 스모크 테스트 통과.
+- ⏳ **다음(차단됨):** Supabase 대시보드에 **카카오 OAuth provider 등록**(카카오 개발자앱 키 + redirect `…/auth/callback`) → 브라우저 로그인 E2E. 이후 5단계(가용성 입력 드래그 격자 ★)
 
 빌드 순서(전체): Scaffold → 스키마+RLS → 인증 → 구조 CRUD → 가용성 입력 → 단건 매칭 엔진 → 투표 마감 Cron → 룸 캘린더+개인 뷰 → 소집/outbox → 사설 봇 → 아카이브.
 

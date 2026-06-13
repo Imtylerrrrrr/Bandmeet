@@ -1,0 +1,209 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { asc, eq } from 'drizzle-orm';
+
+import { AppHeader } from '@/components/AppHeader';
+import { db } from '@/lib/db';
+import {
+  memberships,
+  performances,
+  profiles,
+  songs,
+  teamMembers,
+  teams,
+} from '@/lib/db/schema';
+import { requireActiveOrg } from '@/lib/org';
+import {
+  addTeamMember,
+  createSong,
+  deleteSong,
+  removeTeamMember,
+  setSongStatus,
+} from './actions';
+
+export default async function TeamDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const { active, all } = await requireActiveOrg();
+  const isAdmin = active.role === 'admin';
+
+  const [team] = await db.select().from(teams).where(eq(teams.id, id));
+  if (!team || team.orgId !== active.orgId) notFound();
+
+  const [perf] = await db
+    .select({ id: performances.id, name: performances.name })
+    .from(performances)
+    .where(eq(performances.id, team.performanceId));
+
+  // org 전체 멤버(이름) — 팀원 표시 + 추가 후보 산출에 재사용.
+  const orgMembers = await db
+    .select({ userId: memberships.userId, name: profiles.name })
+    .from(memberships)
+    .innerJoin(profiles, eq(memberships.userId, profiles.id))
+    .where(eq(memberships.orgId, active.orgId))
+    .orderBy(asc(profiles.name));
+
+  const teamMemberIds = new Set(
+    (
+      await db
+        .select({ userId: teamMembers.userId })
+        .from(teamMembers)
+        .where(eq(teamMembers.teamId, id))
+    ).map((r) => r.userId),
+  );
+  const members = orgMembers.filter((m) => teamMemberIds.has(m.userId));
+  const candidates = orgMembers.filter((m) => !teamMemberIds.has(m.userId));
+
+  const songRows = await db
+    .select()
+    .from(songs)
+    .where(eq(songs.teamId, id))
+    .orderBy(asc(songs.status), asc(songs.title));
+
+  return (
+    <>
+      <AppHeader active={active} all={all} />
+      <main className="mx-auto flex max-w-3xl flex-col gap-8 p-6">
+        <div>
+          {perf && (
+            <Link
+              href={`/perf/${perf.id}`}
+              className="text-xs text-gray-500 hover:underline"
+            >
+              ← {perf.name}
+            </Link>
+          )}
+          <h1 className="mt-1 text-lg font-bold">{team.name}</h1>
+        </div>
+
+        {/* 팀원 */}
+        <section className="flex flex-col gap-3">
+          <h2 className="text-sm font-semibold">팀원 ({members.length})</h2>
+          {members.length === 0 ? (
+            <p className="text-sm text-gray-500">아직 팀원이 없습니다.</p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {members.map((m) => (
+                <li
+                  key={m.userId}
+                  className="flex items-center gap-2 rounded-full border px-3 py-1 text-sm"
+                >
+                  {m.name}
+                  {isAdmin && (
+                    <form action={removeTeamMember}>
+                      <input type="hidden" name="teamId" value={team.id} />
+                      <input type="hidden" name="userId" value={m.userId} />
+                      <button className="text-xs text-red-500 hover:text-red-700">
+                        ×
+                      </button>
+                    </form>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {isAdmin && candidates.length > 0 && (
+            <form action={addTeamMember} className="flex gap-2">
+              <input type="hidden" name="teamId" value={team.id} />
+              <select
+                name="userId"
+                className="rounded-md border px-2 py-1 text-sm"
+                defaultValue=""
+              >
+                <option value="" disabled>
+                  팀원 추가…
+                </option>
+                {candidates.map((c) => (
+                  <option key={c.userId} value={c.userId}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <button className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50">
+                추가
+              </button>
+            </form>
+          )}
+        </section>
+
+        {/* 곡 */}
+        <section className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">곡 ({songRows.length})</h2>
+            <Link
+              href={`/team/${team.id}/assign`}
+              className="text-xs text-blue-600 hover:underline"
+            >
+              곡-사람 배치 →
+            </Link>
+          </div>
+
+          {isAdmin && (
+            <form action={createSong} className="flex gap-2">
+              <input type="hidden" name="teamId" value={team.id} />
+              <input
+                name="title"
+                required
+                placeholder="곡 제목"
+                className="flex-1 rounded-md border px-3 py-2 text-sm"
+              />
+              <button className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+                추가
+              </button>
+            </form>
+          )}
+
+          {songRows.length === 0 ? (
+            <p className="text-sm text-gray-500">아직 곡이 없습니다.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {songRows.map((s) => (
+                <li
+                  key={s.id}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <span className="font-medium">
+                    {s.title}
+                    <span
+                      className={`ml-2 rounded px-1.5 py-0.5 text-xs ${
+                        s.status === 'confirmed'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {s.status === 'confirmed' ? '확정' : '후보'}
+                    </span>
+                  </span>
+                  {isAdmin && (
+                    <div className="flex items-center gap-2">
+                      <form action={setSongStatus}>
+                        <input type="hidden" name="songId" value={s.id} />
+                        <input
+                          type="hidden"
+                          name="status"
+                          value={s.status === 'confirmed' ? 'candidate' : 'confirmed'}
+                        />
+                        <button className="text-xs text-blue-600 hover:underline">
+                          {s.status === 'confirmed' ? '후보로' : '확정으로'}
+                        </button>
+                      </form>
+                      <form action={deleteSong}>
+                        <input type="hidden" name="songId" value={s.id} />
+                        <button className="text-xs text-red-600 hover:underline">
+                          삭제
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </main>
+    </>
+  );
+}
