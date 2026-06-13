@@ -40,6 +40,20 @@
 
 ## 상태
 
-🚧 초기 기획 단계 — 스캐폴딩 전.
+🚧 빌드 진행 중 — **1~3단계 코드 완료**(Scaffold · 스키마+RLS · 인증). DB 연결·마이그레이션 적용 전.
 
-빌드 순서(요약): Scaffold → 스키마+RLS → 인증 → 구조 CRUD → 가용성 입력 → 단건 매칭 엔진 → 투표 마감 Cron → 룸 캘린더+개인 뷰 → 소집/outbox → 사설 봇 → 아카이브.
+- ✅ **Scaffold** — Next 16(App Router/TS) + Tailwind v4 + Drizzle + Supabase SSR 클라이언트 + env 템플릿
+- ✅ **스키마 + RLS** — 16개 테이블 Drizzle 스키마, 마이그레이션 SQL(`drizzle/0000`), 멀티테넌트 RLS 정책 + 카카오 가입 트리거(`drizzle/0001`)
+- ✅ **인증** — Supabase 미들웨어 세션 + 카카오 OAuth 라우트 + 역할 가드(`requireRole`)
+- ⏳ **다음(차단됨):** Supabase 프로젝트 생성 + `.env.local` 작성 + `drizzle-kit migrate` + 카카오 OAuth 키 등록 → 이후 4단계(구조 CRUD)부터 재개
+
+빌드 순서(전체): Scaffold → 스키마+RLS → 인증 → 구조 CRUD → 가용성 입력 → 단건 매칭 엔진 → 투표 마감 Cron → 룸 캘린더+개인 뷰 → 소집/outbox → 사설 봇 → 아카이브.
+
+### 로컬 실행 (DB 연결 후)
+
+```bash
+npm install
+cp .env.example .env.local      # 값 채우기
+npx drizzle-kit migrate          # 스키마 + RLS 적용
+npm run dev
+```

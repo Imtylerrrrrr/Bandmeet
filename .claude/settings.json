@@ -25,13 +25,18 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/typecheck.sh\"",
+            "statusMessage": "타입체크(백그라운드)…",
             "async": true,
             "asyncRewake": true,
-            "rewakeSummary": "TypeScript 타입 에러",
-            "statusMessage": "타입체크(백그라운드)…"
+            "rewakeSummary": "TypeScript 타입 에러"
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "supabase@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true
   }
 }
