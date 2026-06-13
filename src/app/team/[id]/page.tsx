@@ -177,27 +177,35 @@ export default async function TeamDetailPage({
                       {s.status === 'confirmed' ? '확정' : '후보'}
                     </span>
                   </span>
-                  {isAdmin && (
-                    <div className="flex items-center gap-2">
-                      <form action={setSongStatus}>
-                        <input type="hidden" name="songId" value={s.id} />
-                        <input
-                          type="hidden"
-                          name="status"
-                          value={s.status === 'confirmed' ? 'candidate' : 'confirmed'}
-                        />
-                        <button className="text-xs text-blue-600 hover:underline">
-                          {s.status === 'confirmed' ? '후보로' : '확정으로'}
-                        </button>
-                      </form>
-                      <form action={deleteSong}>
-                        <input type="hidden" name="songId" value={s.id} />
-                        <button className="text-xs text-red-600 hover:underline">
-                          삭제
-                        </button>
-                      </form>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/match/${s.id}`}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      매칭 →
+                    </Link>
+                    {isAdmin && (
+                      <div className="flex items-center gap-2">
+                        <form action={setSongStatus}>
+                          <input type="hidden" name="songId" value={s.id} />
+                          <input
+                            type="hidden"
+                            name="status"
+                            value={s.status === 'confirmed' ? 'candidate' : 'confirmed'}
+                          />
+                          <button className="text-xs text-blue-600 hover:underline">
+                            {s.status === 'confirmed' ? '후보로' : '확정으로'}
+                          </button>
+                        </form>
+                        <form action={deleteSong}>
+                          <input type="hidden" name="songId" value={s.id} />
+                          <button className="text-xs text-red-600 hover:underline">
+                            삭제
+                          </button>
+                        </form>
+                      </div>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
