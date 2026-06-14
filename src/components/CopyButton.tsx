@@ -18,7 +18,7 @@ export function CopyButton({ text, label = '복사' }: { text: string; label?: s
           /* 클립보드 접근 불가 시 무시(수동 선택 복사) */
         }
       }}
-      className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ${
+      className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-2 text-xs font-medium transition-colors duration-150 ${
         done
           ? 'border-transparent bg-ok-bg text-ok-text'
           : 'text-mut hover:bg-hover hover:text-ink'

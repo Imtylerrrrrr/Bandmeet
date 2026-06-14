@@ -113,7 +113,7 @@ export function MobileNav({
                   </select>
                   <button
                     type="submit"
-                    className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-primary-ink"
+                    className="rounded-lg bg-primary px-3 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-primary-ink"
                   >
                     전환
                   </button>
@@ -122,7 +122,7 @@ export function MobileNav({
               <form action={signOut}>
                 <button
                   type="submit"
-                  className="flex w-full items-center justify-center gap-2 rounded-lg border bg-surface px-3 py-2 text-sm font-medium text-ink transition-colors duration-150 hover:bg-hover"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border bg-surface px-3 py-2.5 text-sm font-medium text-ink transition-colors duration-150 hover:bg-hover"
                 >
                   <IconLogout size={17} stroke={1.5} />
                   로그아웃

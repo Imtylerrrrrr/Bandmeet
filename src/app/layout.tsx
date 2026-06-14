@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Bandmeet — 합주 일정 자동 매칭",
   description: "되는 시간을 칠하면 합주가 자동으로 잡혀요. 밴드 동아리용 합주·회의 스케줄러.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#fafafa",
 };
 
 export default function RootLayout({
