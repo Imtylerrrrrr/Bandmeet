@@ -190,7 +190,7 @@ function CellBody({
   // 예외 없음 → 템플릿 baseline (흐리게)
   if (base === 'green') return <Bar className="bg-ok-bg text-ok-text">가능 · 템플릿</Bar>;
   if (base === 'yellow') return <Bar className="bg-warn-bg text-warn-text">되면 · 템플릿</Bar>;
-  return <Bar className="bg-canvas text-faint">— · 템플릿</Bar>;
+  return <Bar className="bg-hover text-faint">— · 템플릿</Bar>;
 }
 
 function Bar({ className, children }: { className: string; children: React.ReactNode }) {

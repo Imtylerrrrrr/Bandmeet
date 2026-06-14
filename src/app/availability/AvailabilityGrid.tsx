@@ -144,7 +144,7 @@ export function AvailabilityGrid({
                       if (painting.current) paint(w, h);
                     }}
                     className={`h-7 cursor-pointer rounded-md transition-colors duration-100 ${
-                      tier ? TIER_BG[tier] : 'bg-canvas hover:bg-hover'
+                      tier ? TIER_BG[tier] : 'bg-line-strong hover:bg-faint'
                     }`}
                   />
                 );
