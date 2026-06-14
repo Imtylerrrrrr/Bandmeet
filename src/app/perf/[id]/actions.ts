@@ -6,6 +6,7 @@ import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { performances, teams } from '@/lib/db/schema';
 import { requireOrgAdmin } from '@/lib/org';
+import { assertPerfActive } from '@/lib/archive';
 
 async function perfOrg(performanceId: string) {
   const [p] = await db
@@ -22,6 +23,7 @@ export async function createTeam(formData: FormData) {
   if (!name) throw new Error('팀 이름을 입력하세요.');
   const orgId = await perfOrg(performanceId);
   await requireOrgAdmin(orgId);
+  await assertPerfActive(performanceId);
 
   await db.insert(teams).values({ orgId, performanceId, name });
   revalidatePath(`/perf/${performanceId}`);
@@ -32,6 +34,7 @@ export async function deleteTeam(formData: FormData) {
   const id = String(formData.get('id') ?? '');
   const orgId = await perfOrg(performanceId);
   await requireOrgAdmin(orgId);
+  await assertPerfActive(performanceId);
 
   await db.delete(teams).where(and(eq(teams.id, id), eq(teams.orgId, orgId)));
   revalidatePath(`/perf/${performanceId}`);

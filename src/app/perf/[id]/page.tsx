@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { performances, teams } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
 import { createTeam, deleteTeam } from './actions';
+import { archivePerformance, unarchivePerformance } from '../actions';
 
 export default async function PerfDetailPage({
   params,
@@ -22,6 +23,7 @@ export default async function PerfDetailPage({
     .from(performances)
     .where(eq(performances.id, id));
   if (!perf || perf.orgId !== active.orgId) notFound();
+  const archived = !!perf.archivedAt;
 
   const teamRows = await db
     .select()
@@ -37,16 +39,41 @@ export default async function PerfDetailPage({
           <Link href="/perf" className="text-xs text-gray-500 hover:underline">
             ← 공연 목록
           </Link>
-          <h1 className="mt-1 text-lg font-bold">{perf.name}</h1>
+          <div className="mt-1 flex items-center gap-2">
+            <h1 className="text-lg font-bold">{perf.name}</h1>
+            {archived && (
+              <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
+                아카이브
+              </span>
+            )}
+          </div>
           <p className="text-xs text-gray-500">
             {perf.performDate ? `공연일 ${perf.performDate}` : '공연일 미정'}
           </p>
+          {isAdmin && (
+            <form
+              action={archived ? unarchivePerformance : archivePerformance}
+              className="mt-2"
+            >
+              <input type="hidden" name="orgId" value={active.orgId} />
+              <input type="hidden" name="id" value={perf.id} />
+              <button className="rounded border px-2 py-1 text-xs hover:bg-gray-50">
+                {archived ? '아카이브 복원' : '공연 종료(아카이브)'}
+              </button>
+            </form>
+          )}
         </div>
+
+        {archived && (
+          <p className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+            🔒 아카이브된 공연입니다. 읽기 전용이며 팀·곡·투표를 변경할 수 없습니다.
+          </p>
+        )}
 
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold">팀 ({teamRows.length})</h2>
 
-          {isAdmin && (
+          {isAdmin && !archived && (
             <form action={createTeam} className="flex gap-2">
               <input type="hidden" name="performanceId" value={perf.id} />
               <input
@@ -73,7 +100,7 @@ export default async function PerfDetailPage({
                   <Link href={`/team/${t.id}`} className="flex-1 font-medium hover:underline">
                     {t.name}
                   </Link>
-                  {isAdmin && (
+                  {isAdmin && !archived && (
                     <form action={deleteTeam}>
                       <input type="hidden" name="performanceId" value={perf.id} />
                       <input type="hidden" name="id" value={t.id} />

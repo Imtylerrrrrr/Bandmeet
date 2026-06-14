@@ -16,6 +16,7 @@ import { requireMembership, requireOrgAdmin } from '@/lib/org';
 import { slotToDate } from '@/lib/matching/slots';
 import { enqueueOutbox } from '@/lib/outbox';
 import { outboxSummon } from '@/lib/messages';
+import { assertSongActive } from '@/lib/archive';
 
 async function songOrg(songId: string) {
   const [s] = await db
@@ -41,6 +42,7 @@ export async function createVote(formData: FormData) {
 
   const orgId = await songOrg(songId);
   await requireOrgAdmin(orgId);
+  await assertSongActive(songId);
 
   const parsed = picks.map((p) => {
     const [slotStr, durStr] = p.split(':');
@@ -89,6 +91,7 @@ export async function castBallot(formData: FormData) {
   const voteId = String(formData.get('voteId') ?? '');
   const orgId = await songOrg(songId);
   const { userId } = await requireMembership(orgId);
+  await assertSongActive(songId);
 
   // 이 투표의 옵션만 허용.
   const options = await db
@@ -163,6 +166,7 @@ export async function cancelVote(formData: FormData) {
   const rehearsalId = String(formData.get('rehearsalId') ?? '');
   const orgId = await songOrg(songId);
   await requireOrgAdmin(orgId);
+  await assertSongActive(songId);
   await db
     .delete(rehearsals)
     .where(and(eq(rehearsals.id, rehearsalId), eq(rehearsals.orgId, orgId)));

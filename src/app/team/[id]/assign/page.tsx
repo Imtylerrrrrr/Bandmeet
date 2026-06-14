@@ -13,6 +13,7 @@ import {
   teams,
 } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
+import { isTeamArchived } from '@/lib/archive';
 import { toggleSongMember } from './actions';
 
 export default async function AssignPage({
@@ -26,6 +27,8 @@ export default async function AssignPage({
 
   const [team] = await db.select().from(teams).where(eq(teams.id, id));
   if (!team || team.orgId !== active.orgId) notFound();
+  const archived = await isTeamArchived(id);
+  const canEdit = isAdmin && !archived;
 
   // 팀원(이름) = org 멤버 ∩ 팀원.
   const orgMembers = await db
@@ -109,7 +112,7 @@ export default async function AssignPage({
                       const on = assignedSet.has(`${s.id}:${m.userId}`);
                       return (
                         <td key={m.userId} className="p-1 text-center">
-                          {isAdmin ? (
+                          {canEdit ? (
                             <form action={toggleSongMember}>
                               <input type="hidden" name="songId" value={s.id} />
                               <input type="hidden" name="userId" value={m.userId} />

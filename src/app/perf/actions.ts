@@ -33,3 +33,29 @@ export async function deletePerformance(formData: FormData) {
     .where(and(eq(performances.id, id), eq(performances.orgId, orgId)));
   revalidatePath('/perf');
 }
+
+/** 공연 종료 → 아카이브(읽기전용). */
+export async function archivePerformance(formData: FormData) {
+  const orgId = String(formData.get('orgId') ?? '');
+  const id = String(formData.get('id') ?? '');
+  await requireOrgAdmin(orgId);
+  await db
+    .update(performances)
+    .set({ archivedAt: new Date() })
+    .where(and(eq(performances.id, id), eq(performances.orgId, orgId)));
+  revalidatePath('/perf');
+  revalidatePath(`/perf/${id}`);
+}
+
+/** 아카이브 해제(다시 편집 가능). */
+export async function unarchivePerformance(formData: FormData) {
+  const orgId = String(formData.get('orgId') ?? '');
+  const id = String(formData.get('id') ?? '');
+  await requireOrgAdmin(orgId);
+  await db
+    .update(performances)
+    .set({ archivedAt: null })
+    .where(and(eq(performances.id, id), eq(performances.orgId, orgId)));
+  revalidatePath('/perf');
+  revalidatePath(`/perf/${id}`);
+}

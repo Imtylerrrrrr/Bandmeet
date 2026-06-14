@@ -6,6 +6,7 @@ import { and, eq, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { songMembers, songs, teamMembers, teams } from '@/lib/db/schema';
 import { requireOrgAdmin } from '@/lib/org';
+import { assertSongActive, assertTeamActive } from '@/lib/archive';
 
 async function teamOrg(teamId: string) {
   const [t] = await db
@@ -32,6 +33,7 @@ export async function addTeamMember(formData: FormData) {
   if (!userId) return;
   const orgId = await teamOrg(teamId);
   await requireOrgAdmin(orgId);
+  await assertTeamActive(teamId);
 
   await db.insert(teamMembers).values({ teamId, userId }).onConflictDoNothing();
   revalidatePath(`/team/${teamId}`);
@@ -42,6 +44,7 @@ export async function removeTeamMember(formData: FormData) {
   const userId = String(formData.get('userId') ?? '');
   const orgId = await teamOrg(teamId);
   await requireOrgAdmin(orgId);
+  await assertTeamActive(teamId);
 
   await db
     .delete(teamMembers)
@@ -66,6 +69,7 @@ export async function createSong(formData: FormData) {
   if (!title) throw new Error('곡 제목을 입력하세요.');
   const orgId = await teamOrg(teamId);
   await requireOrgAdmin(orgId);
+  await assertTeamActive(teamId);
 
   await db.insert(songs).values({ orgId, teamId, title });
   revalidatePath(`/team/${teamId}`);
@@ -79,6 +83,7 @@ export async function setSongStatus(formData: FormData) {
   }
   const s = await songTeam(songId);
   await requireOrgAdmin(s.orgId);
+  await assertSongActive(songId);
 
   await db.update(songs).set({ status }).where(eq(songs.id, songId));
   revalidatePath(`/team/${s.teamId}`);
@@ -88,6 +93,7 @@ export async function deleteSong(formData: FormData) {
   const songId = String(formData.get('songId') ?? '');
   const s = await songTeam(songId);
   await requireOrgAdmin(s.orgId);
+  await assertSongActive(songId);
 
   await db.delete(songs).where(eq(songs.id, songId));
   revalidatePath(`/team/${s.teamId}`);

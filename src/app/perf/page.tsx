@@ -5,7 +5,12 @@ import { AppHeader } from '@/components/AppHeader';
 import { db } from '@/lib/db';
 import { performances } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
-import { createPerformance, deletePerformance } from './actions';
+import {
+  archivePerformance,
+  createPerformance,
+  deletePerformance,
+  unarchivePerformance,
+} from './actions';
 
 export default async function PerfPage() {
   const { active, all } = await requireActiveOrg();
@@ -81,13 +86,20 @@ export default async function PerfPage() {
                   </div>
                 </Link>
                 {isAdmin && (
-                  <form action={deletePerformance}>
-                    <input type="hidden" name="orgId" value={active.orgId} />
-                    <input type="hidden" name="id" value={p.id} />
-                    <button className="text-xs text-red-600 hover:underline">
-                      삭제
-                    </button>
-                  </form>
+                  <div className="flex items-center gap-3">
+                    <form action={p.archivedAt ? unarchivePerformance : archivePerformance}>
+                      <input type="hidden" name="orgId" value={active.orgId} />
+                      <input type="hidden" name="id" value={p.id} />
+                      <button className="text-xs text-gray-600 hover:underline">
+                        {p.archivedAt ? '복원' : '아카이브'}
+                      </button>
+                    </form>
+                    <form action={deletePerformance}>
+                      <input type="hidden" name="orgId" value={active.orgId} />
+                      <input type="hidden" name="id" value={p.id} />
+                      <button className="text-xs text-red-600 hover:underline">삭제</button>
+                    </form>
+                  </div>
                 )}
               </li>
             ))}

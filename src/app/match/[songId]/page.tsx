@@ -19,6 +19,7 @@ import { recommendSlots } from '@/lib/matching/engine';
 import { loadRecommendInput } from '@/lib/matching/load';
 import { instantToSlot, kstDateStr, kstWeekday, slotToDate } from '@/lib/matching/slots';
 import { outboxSummon } from '@/lib/messages';
+import { isSongArchived } from '@/lib/archive';
 import { cancelVote, castBallot, createVote, summon } from './actions';
 
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
@@ -60,6 +61,7 @@ export default async function MatchPage({
     .orderBy(asc(rehearsals.startAt));
   const h = await headers();
   const base = `${h.get('x-forwarded-proto') ?? 'http'}://${h.get('host') ?? 'localhost:3000'}`;
+  const archived = await isSongArchived(songId);
 
   return (
     <>
@@ -72,6 +74,12 @@ export default async function MatchPage({
           <h1 className="mt-1 text-lg font-bold">합주 매칭 · {song.title}</h1>
         </div>
 
+        {archived && (
+          <p className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+            🔒 아카이브된 공연입니다. 새 투표·확정은 할 수 없습니다(소집 안내만 가능).
+          </p>
+        )}
+
         {confirmedRows.length > 0 && (
           <ConfirmedSection
             songId={songId}
@@ -83,9 +91,15 @@ export default async function MatchPage({
         )}
 
         {reh ? (
-          <VoteSection songId={songId} rehearsalId={reh.id} userId={user.id} isAdmin={isAdmin} />
+          <VoteSection
+            songId={songId}
+            rehearsalId={reh.id}
+            userId={user.id}
+            isAdmin={isAdmin && !archived}
+            canVote={!archived}
+          />
         ) : (
-          <RecommendSection songId={songId} isAdmin={isAdmin} />
+          <RecommendSection songId={songId} isAdmin={isAdmin && !archived} />
         )}
       </main>
     </>
@@ -215,11 +229,13 @@ async function VoteSection({
   rehearsalId,
   userId,
   isAdmin,
+  canVote,
 }: {
   songId: string;
   rehearsalId: string;
   userId: string;
   isAdmin: boolean;
+  canVote: boolean;
 }) {
   const [vote] = await db
     .select()
@@ -276,23 +292,27 @@ async function VoteSection({
                 <span className="text-xs text-gray-400">
                   1순위 {tally(o.id, 1)} · 2순위 {tally(o.id, 2)} · 3순위 {tally(o.id, 3)}
                 </span>
-                <select
-                  name={`rank_${o.id}`}
-                  defaultValue={String(myRank.get(o.id) ?? '')}
-                  className="ml-auto rounded border px-2 py-1 text-sm"
-                >
-                  <option value="">—</option>
-                  <option value="1">1순위</option>
-                  <option value="2">2순위</option>
-                  <option value="3">3순위</option>
-                </select>
+                {canVote && (
+                  <select
+                    name={`rank_${o.id}`}
+                    defaultValue={String(myRank.get(o.id) ?? '')}
+                    className="ml-auto rounded border px-2 py-1 text-sm"
+                  >
+                    <option value="">—</option>
+                    <option value="1">1순위</option>
+                    <option value="2">2순위</option>
+                    <option value="3">3순위</option>
+                  </select>
+                )}
               </li>
             );
           })}
         </ul>
-        <button className="self-start rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">
-          투표 제출
-        </button>
+        {canVote && (
+          <button className="self-start rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+            투표 제출
+          </button>
+        )}
       </form>
 
       <p className="text-xs text-gray-400">

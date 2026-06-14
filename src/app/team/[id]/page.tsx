@@ -34,9 +34,14 @@ export default async function TeamDetailPage({
   if (!team || team.orgId !== active.orgId) notFound();
 
   const [perf] = await db
-    .select({ id: performances.id, name: performances.name })
+    .select({
+      id: performances.id,
+      name: performances.name,
+      archivedAt: performances.archivedAt,
+    })
     .from(performances)
     .where(eq(performances.id, team.performanceId));
+  const archived = !!perf?.archivedAt;
 
   // org 전체 멤버(이름) — 팀원 표시 + 추가 후보 산출에 재사용.
   const orgMembers = await db
@@ -79,6 +84,12 @@ export default async function TeamDetailPage({
           <h1 className="mt-1 text-lg font-bold">{team.name}</h1>
         </div>
 
+        {archived && (
+          <p className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+            🔒 아카이브된 공연의 팀입니다. 읽기 전용입니다.
+          </p>
+        )}
+
         {/* 팀원 */}
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold">팀원 ({members.length})</h2>
@@ -92,7 +103,7 @@ export default async function TeamDetailPage({
                   className="flex items-center gap-2 rounded-full border px-3 py-1 text-sm"
                 >
                   {m.name}
-                  {isAdmin && (
+                  {isAdmin && !archived && (
                     <form action={removeTeamMember}>
                       <input type="hidden" name="teamId" value={team.id} />
                       <input type="hidden" name="userId" value={m.userId} />
@@ -105,7 +116,7 @@ export default async function TeamDetailPage({
               ))}
             </ul>
           )}
-          {isAdmin && candidates.length > 0 && (
+          {isAdmin && !archived && candidates.length > 0 && (
             <form action={addTeamMember} className="flex gap-2">
               <input type="hidden" name="teamId" value={team.id} />
               <select
@@ -141,7 +152,7 @@ export default async function TeamDetailPage({
             </Link>
           </div>
 
-          {isAdmin && (
+          {isAdmin && !archived && (
             <form action={createSong} className="flex gap-2">
               <input type="hidden" name="teamId" value={team.id} />
               <input
@@ -184,7 +195,7 @@ export default async function TeamDetailPage({
                     >
                       매칭 →
                     </Link>
-                    {isAdmin && (
+                    {isAdmin && !archived && (
                       <div className="flex items-center gap-2">
                         <form action={setSongStatus}>
                           <input type="hidden" name="songId" value={s.id} />
