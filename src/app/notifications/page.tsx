@@ -3,6 +3,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import { IconBell } from '@tabler/icons-react';
 
 import { AppHeader } from '@/components/AppHeader';
+import { Button } from '@/components/Button';
 import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { notifications } from '@/lib/db/schema';
@@ -41,9 +42,9 @@ export default async function NotificationsPage() {
           {unread > 0 && (
             <form action={markAllRead}>
               <input type="hidden" name="orgId" value={active.orgId} />
-              <button className="text-[13px] font-medium text-primary transition-opacity duration-150 hover:opacity-70">
+              <Button type="submit" variant="secondary" size="sm">
                 모두 읽음
-              </button>
+              </Button>
             </form>
           )}
         </div>

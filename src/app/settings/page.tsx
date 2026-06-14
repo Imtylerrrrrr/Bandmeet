@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
+import { Button } from '@/components/Button';
 import { db } from '@/lib/db';
 import { chatBindings } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
@@ -56,16 +57,16 @@ export default async function SettingsPage() {
                   placeholder="단톡방 이름"
                   className="flex-1 rounded-lg border bg-surface px-3 py-2 text-sm transition-colors duration-150 hover:border-line-strong"
                 />
-                <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity duration-150 hover:opacity-90">
+                <Button type="submit" variant="primary">
                   연결
-                </button>
+                </Button>
               </form>
               {binding && (
                 <form action={removeBinding}>
                   <input type="hidden" name="orgId" value={active.orgId} />
-                  <button className="text-xs font-medium text-danger-text transition-opacity duration-150 hover:opacity-70">
+                  <Button type="submit" variant="danger" size="sm">
                     연결 해제
-                  </button>
+                  </Button>
                 </form>
               )}
             </div>

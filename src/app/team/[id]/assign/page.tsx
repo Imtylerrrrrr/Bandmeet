@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { asc, eq, inArray } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
+import { ButtonLink } from '@/components/Button';
 import { db } from '@/lib/db';
 import {
   memberships,
@@ -83,14 +84,16 @@ export default async function AssignPage({
         </div>
 
         {members.length === 0 || songRows.length === 0 ? (
-          <p className="text-sm text-mut">
-            {members.length === 0
-              ? '먼저 팀원을 추가하세요.'
-              : '먼저 곡을 추가하세요.'}{' '}
-            <Link href={`/team/${team.id}`} className="text-primary hover:underline">
-              팀 페이지로
-            </Link>
-          </p>
+          <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed bg-surface px-6 py-10">
+            <p className="text-sm text-mut">
+              {members.length === 0
+                ? '먼저 팀원을 추가하세요.'
+                : '먼저 곡을 추가하세요.'}
+            </p>
+            <ButtonLink href={`/team/${team.id}`} variant="secondary" size="sm">
+              팀 페이지로 →
+            </ButtonLink>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="border-collapse text-sm">

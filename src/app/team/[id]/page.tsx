@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { asc, eq } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
+import { Button, ButtonLink } from '@/components/Button';
 import { db } from '@/lib/db';
 import {
   memberships,
@@ -133,9 +134,9 @@ export default async function TeamDetailPage({
                   </option>
                 ))}
               </select>
-              <button className="rounded-md border px-3 py-1 text-sm hover:bg-hover">
+              <Button type="submit" variant="secondary">
                 추가
-              </button>
+              </Button>
             </form>
           )}
         </section>
@@ -144,12 +145,13 @@ export default async function TeamDetailPage({
         <section className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">곡 ({songRows.length})</h2>
-            <Link
+            <ButtonLink
               href={`/team/${team.id}/assign`}
-              className="text-xs text-primary hover:underline"
+              variant="secondary"
+              size="sm"
             >
               곡-사람 배치 →
-            </Link>
+            </ButtonLink>
           </div>
 
           {isAdmin && !archived && (
@@ -161,9 +163,9 @@ export default async function TeamDetailPage({
                 placeholder="곡 제목"
                 className="flex-1 rounded-md border px-3 py-2 text-sm"
               />
-              <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+              <Button type="submit" variant="primary">
                 추가
-              </button>
+              </Button>
             </form>
           )}
 
@@ -189,12 +191,9 @@ export default async function TeamDetailPage({
                     </span>
                   </span>
                   <div className="flex items-center gap-3">
-                    <Link
-                      href={`/match/${s.id}`}
-                      className="text-xs text-primary hover:underline"
-                    >
+                    <ButtonLink href={`/match/${s.id}`} variant="secondary" size="sm">
                       매칭 →
-                    </Link>
+                    </ButtonLink>
                     {isAdmin && !archived && (
                       <div className="flex items-center gap-2">
                         <form action={setSongStatus}>
@@ -204,15 +203,15 @@ export default async function TeamDetailPage({
                             name="status"
                             value={s.status === 'confirmed' ? 'candidate' : 'confirmed'}
                           />
-                          <button className="text-xs text-primary hover:underline">
+                          <Button type="submit" variant="ghost" size="sm">
                             {s.status === 'confirmed' ? '후보로' : '확정으로'}
-                          </button>
+                          </Button>
                         </form>
                         <form action={deleteSong}>
                           <input type="hidden" name="songId" value={s.id} />
-                          <button className="text-xs text-danger-text hover:underline">
+                          <Button type="submit" variant="danger" size="sm">
                             삭제
-                          </button>
+                          </Button>
                         </form>
                       </div>
                     )}
