@@ -76,7 +76,8 @@ export const performances = pgTable('performances', {
     onDelete: 'set null',
   }),
   name: text('name').notNull(),
-  performDate: date('perform_date'),
+  performDate: date('perform_date'), // 공연 시작일(범위면 시작). 매칭 지평의 끝.
+  performEndDate: date('perform_end_date'), // null = 하루 공연. 있으면 종료일(표시용).
   deadline: timestamp('deadline', { withTimezone: true }),
   archivedAt: timestamp('archived_at', { withTimezone: true }), // null = 진행중
 });

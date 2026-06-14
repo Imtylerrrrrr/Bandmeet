@@ -11,14 +11,20 @@ export async function createPerformance(formData: FormData) {
   const orgId = String(formData.get('orgId') ?? '');
   const name = String(formData.get('name') ?? '').trim();
   const performDate = String(formData.get('performDate') ?? '').trim();
+  const performEndDate = String(formData.get('performEndDate') ?? '').trim();
   const deadline = String(formData.get('deadline') ?? '').trim();
   if (!name) throw new Error('공연 이름을 입력하세요.');
+  if (performEndDate && !performDate)
+    throw new Error('종료일을 정하려면 시작일을 먼저 입력하세요.');
+  if (performEndDate && performDate && performEndDate < performDate)
+    throw new Error('종료일이 시작일보다 빠를 수 없습니다.');
   await requireOrgAdmin(orgId);
 
   await db.insert(performances).values({
     orgId,
     name,
     performDate: performDate || null,
+    performEndDate: performEndDate || null,
     deadline: deadline ? new Date(deadline) : null,
   });
   revalidatePath('/perf');

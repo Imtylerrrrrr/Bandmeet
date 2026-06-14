@@ -3,9 +3,11 @@ import { notFound } from 'next/navigation';
 import { asc, eq } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
+import { Button } from '@/components/Button';
 import { db } from '@/lib/db';
 import { performances, teams } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
+import { perfDateLabel } from '@/lib/perf';
 import { createTeam, deleteTeam } from './actions';
 import { archivePerformance, unarchivePerformance } from '../actions';
 
@@ -47,8 +49,8 @@ export default async function PerfDetailPage({
               </span>
             )}
           </div>
-          <p className="text-xs text-mut">
-            {perf.performDate ? `공연일 ${perf.performDate}` : '공연일 미정'}
+          <p className="text-xs tabular-nums text-mut">
+            {perfDateLabel(perf.performDate, perf.performEndDate)}
           </p>
           {isAdmin && (
             <form
@@ -57,9 +59,9 @@ export default async function PerfDetailPage({
             >
               <input type="hidden" name="orgId" value={active.orgId} />
               <input type="hidden" name="id" value={perf.id} />
-              <button className="rounded border px-2 py-1 text-xs hover:bg-hover">
+              <Button type="submit" variant="secondary" size="sm">
                 {archived ? '아카이브 복원' : '공연 종료(아카이브)'}
-              </button>
+              </Button>
             </form>
           )}
         </div>
@@ -80,11 +82,11 @@ export default async function PerfDetailPage({
                 name="name"
                 required
                 placeholder="팀 이름 (예: 보컬밴드 A)"
-                className="flex-1 rounded-md border px-3 py-2 text-sm"
+                className="flex-1 rounded-lg border bg-surface px-3 py-2 text-sm transition-colors duration-150 hover:border-line-strong"
               />
-              <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+              <Button type="submit" variant="primary">
                 추가
-              </button>
+              </Button>
             </form>
           )}
 
@@ -104,9 +106,9 @@ export default async function PerfDetailPage({
                     <form action={deleteTeam}>
                       <input type="hidden" name="performanceId" value={perf.id} />
                       <input type="hidden" name="id" value={t.id} />
-                      <button className="text-xs text-danger-text hover:underline">
+                      <Button type="submit" variant="danger" size="sm">
                         삭제
-                      </button>
+                      </Button>
                     </form>
                   )}
                 </li>

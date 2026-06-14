@@ -3,9 +3,11 @@ import { desc, eq } from 'drizzle-orm';
 import { IconMicrophone2 } from '@tabler/icons-react';
 
 import { AppHeader } from '@/components/AppHeader';
+import { Button } from '@/components/Button';
 import { db } from '@/lib/db';
 import { performances } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
+import { perfDateLabel } from '@/lib/perf';
 import {
   archivePerformance,
   createPerformance,
@@ -46,9 +48,17 @@ export default async function PerfPage() {
             />
             <div className="flex flex-wrap gap-3">
               <label className="flex flex-col gap-1 text-xs text-mut">
-                공연일
+                공연 시작일
                 <input
                   name="performDate"
+                  type="date"
+                  className="rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs text-mut">
+                종료일 <span className="text-faint">(선택)</span>
+                <input
+                  name="performEndDate"
                   type="date"
                   className="rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong"
                 />
@@ -62,9 +72,9 @@ export default async function PerfPage() {
                 />
               </label>
             </div>
-            <button className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity duration-150 hover:opacity-90">
+            <Button type="submit" variant="primary" className="self-start">
               추가
-            </button>
+            </Button>
           </form>
         )}
 
@@ -91,25 +101,25 @@ export default async function PerfPage() {
                     )}
                   </div>
                   <div className="mt-0.5 text-xs tabular-nums text-mut">
-                    {p.performDate ? `공연일 ${p.performDate}` : '공연일 미정'}
+                    {perfDateLabel(p.performDate, p.performEndDate)}
                     {p.deadline && ` · 마감 ${p.deadline.toLocaleString('ko-KR')}`}
                   </div>
                 </Link>
                 {isAdmin && (
-                  <div className="flex items-center gap-3 text-xs">
+                  <div className="flex items-center gap-2">
                     <form action={p.archivedAt ? unarchivePerformance : archivePerformance}>
                       <input type="hidden" name="orgId" value={active.orgId} />
                       <input type="hidden" name="id" value={p.id} />
-                      <button className="font-medium text-mut transition-colors duration-150 hover:text-ink">
+                      <Button type="submit" variant="ghost" size="sm">
                         {p.archivedAt ? '복원' : '아카이브'}
-                      </button>
+                      </Button>
                     </form>
                     <form action={deletePerformance}>
                       <input type="hidden" name="orgId" value={active.orgId} />
                       <input type="hidden" name="id" value={p.id} />
-                      <button className="font-medium text-danger-text transition-opacity duration-150 hover:opacity-70">
+                      <Button type="submit" variant="danger" size="sm">
                         삭제
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 )}

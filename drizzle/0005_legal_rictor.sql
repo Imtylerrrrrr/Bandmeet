@@ -1,0 +1,1 @@
+ALTER TABLE "performances" ADD COLUMN "perform_end_date" date;
