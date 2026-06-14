@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 메신저봇R(Rhino) 기기 템플릿 — 앱 소스 아님, 기기에서 조정.
+    "bot/**",
+    // 로컬 DB 스모크 스크립트(개발 도구).
+    "scripts/**",
   ]),
 ]);
 

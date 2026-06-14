@@ -253,3 +253,14 @@ export const notifications = pgTable('notifications', {
   readAt: timestamp('read_at', { withTimezone: true }),
   createdAt: createdAt(),
 });
+
+// 단톡방 ↔ org 바인딩 (사설 봇 멀티테넌트 라우팅). 운영진이 1회 설정(매뉴얼 §8-4).
+// room_name = 봇이 보는 단톡방 이름. 전역 unique → 한 방은 한 org 에만.
+export const chatBindings = pgTable('chat_bindings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: uuid('org_id')
+    .notNull()
+    .references(() => orgs.id, { onDelete: 'cascade' }),
+  roomName: text('room_name').notNull().unique(),
+  createdAt: createdAt(),
+});

@@ -45,6 +45,11 @@ export function AppHeader({
           <Link href="/notifications" className="hover:underline">
             알림
           </Link>
+          {active.role === 'admin' && (
+            <Link href="/settings" className="hover:underline">
+              설정
+            </Link>
+          )}
 
           {all.length > 1 && (
             <form action={switchOrg} className="flex items-center gap-1">
