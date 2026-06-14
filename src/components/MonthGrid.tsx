@@ -35,14 +35,12 @@ export function MonthGrid({
 
   return (
     <div className="overflow-x-auto">
-      <div className="grid min-w-[640px] grid-cols-7 border-l border-t text-xs">
+      <div className="grid min-w-[640px] grid-cols-7 overflow-hidden rounded-xl border-l border-t text-xs">
         {/* 요일 헤더 */}
-        {WD.map((w, i) => (
+        {WD.map((w) => (
           <div
             key={w}
-            className={`border-b border-r px-1 py-1 text-center font-medium ${
-              i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-500'
-            }`}
+            className="border-b border-r bg-canvas px-1 py-2 text-center text-[11px] font-medium text-mut"
           >
             {w}
           </div>
@@ -60,45 +58,51 @@ export function MonthGrid({
             <Link
               key={d}
               href={`/calendar?view=day&date=${d}`}
-              className={`flex min-h-[88px] flex-col border-b border-r p-1 hover:bg-gray-50 ${
-                inMonth ? '' : 'bg-gray-50/60'
+              className={`flex min-h-[76px] flex-col gap-1 border-b border-r p-1.5 transition-colors duration-150 hover:bg-hover ${
+                inMonth ? 'bg-surface' : 'bg-canvas'
               }`}
             >
-              <div
-                className={`text-right ${
-                  isToday && inMonth
-                    ? 'font-bold text-blue-600'
-                    : inMonth
-                      ? 'text-gray-600'
-                      : 'text-gray-300'
-                }`}
-              >
-                {dd}
+              <div className="flex justify-end">
+                {isToday && inMonth ? (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold tabular-nums text-white">
+                    {dd}
+                  </span>
+                ) : (
+                  <span
+                    className={`px-0.5 text-[12px] tabular-nums ${
+                      inMonth ? 'text-mut' : 'text-faint'
+                    }`}
+                  >
+                    {dd}
+                  </span>
+                )}
               </div>
-              <div className="mt-0.5 flex flex-col gap-0.5">
+
+              <div className="flex flex-col gap-0.5">
                 {dayBookings.slice(0, 3).map((b) => {
                   const isRoom = report.roomConflictIds.has(b.id);
                   const isConflict = report.conflictIds.has(b.id);
                   const tone = isRoom
-                    ? 'bg-red-100 text-red-800'
+                    ? 'bg-danger-bg text-danger-text'
                     : isConflict
-                      ? 'bg-amber-100 text-amber-800'
+                      ? 'bg-warn-bg text-warn-text'
                       : b.type === 'meeting'
-                        ? 'bg-slate-100 text-slate-700'
-                        : 'bg-indigo-100 text-indigo-800';
+                        ? 'bg-meeting-bg text-meeting-text'
+                        : 'bg-primary-soft text-primary-ink';
                   const sh = ((b.start % 24) + 24) % 24;
                   return (
                     <div
                       key={b.id}
-                      className={`truncate rounded px-1 leading-tight ${tone}`}
+                      className={`truncate rounded-md px-1 py-0.5 leading-tight ${tone}`}
                       title={`${b.title} ${sh}:00`}
                     >
-                      {String(sh).padStart(2, '0')} {b.title}
+                      <span className="tabular-nums opacity-80">{String(sh).padStart(2, '0')}</span>{' '}
+                      {b.title}
                     </div>
                   );
                 })}
                 {dayBookings.length > 3 && (
-                  <div className="text-gray-400">+{dayBookings.length - 3}</div>
+                  <div className="px-1 text-faint">+{dayBookings.length - 3}</div>
                 )}
               </div>
             </Link>

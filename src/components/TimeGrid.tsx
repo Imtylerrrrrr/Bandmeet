@@ -46,8 +46,8 @@ export function TimeGrid({
         {days.map((d, i) => (
           <div
             key={d}
-            className={`border-b border-r px-1 py-1 text-center font-medium ${
-              d === todayStr ? 'bg-blue-50 text-blue-700' : 'text-gray-600'
+            className={`border-b border-r px-1 py-1.5 text-center font-medium ${
+              d === todayStr ? 'bg-primary-soft text-primary-ink' : 'text-mut'
             }`}
             style={{ gridColumn: i + 2, gridRow: 1 }}
           >
@@ -59,7 +59,7 @@ export function TimeGrid({
         {Array.from({ length: HOURS }, (_, r) => (
           <div
             key={`h${r}`}
-            className="border-r border-b pr-1 text-right text-[10px] text-gray-400"
+            className="border-r border-b pr-1.5 text-right text-[10px] tabular-nums text-faint"
             style={{ gridColumn: 1, gridRow: r + 2 }}
           >
             {START_HOUR + r}
@@ -88,17 +88,17 @@ export function TimeGrid({
           const isRoom = report.roomConflictIds.has(b.id);
           const isConflict = report.conflictIds.has(b.id);
           const tone = isRoom
-            ? 'bg-red-100 border-red-400 text-red-800'
+            ? 'bg-danger-bg text-danger-text'
             : isConflict
-              ? 'bg-amber-100 border-amber-400 text-amber-800'
+              ? 'bg-warn-bg text-warn-text'
               : b.type === 'meeting'
-                ? 'bg-slate-100 border-slate-300 text-slate-700'
-                : 'bg-indigo-100 border-indigo-300 text-indigo-800';
+                ? 'bg-meeting-bg text-meeting-text'
+                : 'bg-primary-soft text-primary-ink';
 
           return (
             <div
               key={b.id}
-              className={`z-10 m-px overflow-hidden rounded border px-1 py-0.5 leading-tight ${tone}`}
+              className={`z-10 m-px overflow-hidden rounded-md px-1.5 py-0.5 leading-tight ${tone}`}
               style={{
                 gridColumn: dayIndex + 2,
                 gridRowStart: top - START_HOUR + 2,
@@ -107,7 +107,7 @@ export function TimeGrid({
               title={`${b.title} ${top}:00–${bottom}:00`}
             >
               <div className="font-medium">{b.title}</div>
-              <div className="opacity-70">
+              <div className="tabular-nums opacity-70">
                 {top}:00–{bottom}:00
               </div>
             </div>

@@ -1,4 +1,10 @@
 import Link from 'next/link';
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconAlertTriangle,
+  IconBrush,
+} from '@tabler/icons-react';
 
 import { AppHeader } from '@/components/AppHeader';
 import { WeekGrid } from '@/components/WeekGrid';
@@ -93,16 +99,17 @@ export default async function CalendarPage({
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-4xl flex-col gap-4 p-6">
+      <main className="mx-auto flex max-w-[1100px] flex-col gap-5 px-6 py-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-lg font-bold">합주실 캘린더</h1>
-          <div className="flex items-center gap-1 text-sm">
+          <h1 className="text-[19px] font-semibold tracking-tight">합주실 캘린더</h1>
+          <div className="inline-flex rounded-lg bg-hover p-0.5">
             {tabs.map((t) => (
               <Link
                 key={t.v}
                 href={`/calendar?view=${t.v}&date=${date}`}
-                className={`rounded px-3 py-1 ${
-                  view === t.v ? 'bg-black text-white' : 'border hover:bg-gray-50'
+                aria-current={view === t.v ? 'page' : undefined}
+                className={`rounded-md px-3.5 py-1 text-[13px] font-medium transition-colors duration-150 ${
+                  view === t.v ? 'bg-surface text-ink shadow-sm' : 'text-mut hover:text-ink'
                 }`}
               >
                 {t.text}
@@ -111,31 +118,39 @@ export default async function CalendarPage({
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-2 text-sm">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1">
             <Link
               href={`/calendar?view=${view}&date=${prevDate}`}
-              className="rounded border px-2 py-1 hover:bg-gray-50"
+              aria-label="이전"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
             >
-              ←
+              <IconChevronLeft size={17} stroke={1.5} />
             </Link>
-            <Link href={`/calendar?view=${view}`} className="rounded border px-2 py-1 hover:bg-gray-50">
+            <Link
+              href={`/calendar?view=${view}`}
+              className="rounded-lg border px-3 py-1.5 text-[13px] font-medium text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
+            >
               {todayLabel}
             </Link>
             <Link
               href={`/calendar?view=${view}&date=${nextDate}`}
-              className="rounded border px-2 py-1 hover:bg-gray-50"
+              aria-label="다음"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
             >
-              →
+              <IconChevronRight size={17} stroke={1.5} />
             </Link>
           </div>
-          <p className="text-gray-500">{label}</p>
+          <p className="text-[13px] font-medium tabular-nums text-mut">{label}</p>
         </div>
 
         {/* 더블부킹 경고 */}
         {report.pairs.length > 0 && (
-          <section className="flex flex-col gap-1 rounded-lg border border-red-200 bg-red-50 p-3 text-sm">
-            <div className="font-semibold text-red-700">일정 충돌 {report.pairs.length}건</div>
+          <section className="flex flex-col gap-1.5 rounded-xl bg-danger-bg/50 p-3.5 text-sm">
+            <div className="flex items-center gap-1.5 font-semibold text-danger-text">
+              <IconAlertTriangle size={16} stroke={1.5} />
+              일정 충돌 {report.pairs.length}건
+            </div>
             <ul className="flex flex-col gap-1">
               {report.pairs.map((p, i) => {
                 const a = byId.get(p.a);
@@ -143,18 +158,19 @@ export default async function CalendarPage({
                 if (!a || !b) return null;
                 const shared = p.sharedMembers.map((u) => nameById.get(u) ?? u).join(', ');
                 return (
-                  <li key={i} className="text-gray-700">
+                  <li key={i} className="text-ink">
                     <span
-                      className={`mr-1 rounded px-1 py-0.5 text-xs ${
+                      className={`mr-1 rounded-md px-1.5 py-0.5 text-xs font-medium ${
                         p.kind === 'room'
-                          ? 'bg-red-200 text-red-800'
-                          : 'bg-amber-200 text-amber-800'
+                          ? 'bg-danger-bg text-danger-text'
+                          : 'bg-warn-bg text-warn-text'
                       }`}
                     >
                       {p.kind === 'room' ? '방 중복' : '시간 겹침'}
                     </span>
-                    <b>{a.title}</b> ({fmt(a)}) ↔ <b>{b.title}</b> ({fmt(b)})
-                    {shared && <span className="text-gray-500"> · 공통: {shared}</span>}
+                    <b className="font-medium">{a.title}</b> ({fmt(a)}) ↔{' '}
+                    <b className="font-medium">{b.title}</b> ({fmt(b)})
+                    {shared && <span className="text-mut"> · 공통: {shared}</span>}
                   </li>
                 );
               })}
@@ -180,14 +196,23 @@ export default async function CalendarPage({
         )}
 
         {bookings.length === 0 && (
-          <p className="text-sm text-gray-500">이 기간에 확정된 합주·회의가 없습니다.</p>
+          <div className="flex flex-col items-center gap-2 py-6 text-center">
+            <p className="text-sm text-mut">이 기간에 확정된 합주·회의가 없어요.</p>
+            <Link
+              href="/availability"
+              className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-medium text-primary transition-colors duration-150 hover:bg-primary-soft"
+            >
+              <IconBrush size={15} stroke={1.5} />
+              되는 시간 칠하러 가기
+            </Link>
+          </div>
         )}
 
-        <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-          <Legend cls="bg-indigo-100 border-indigo-300" label="합주" />
-          <Legend cls="bg-slate-100 border-slate-300" label="회의" />
-          <Legend cls="bg-red-100 border-red-400" label="방 중복" />
-          <Legend cls="bg-amber-100 border-amber-400" label="시간 겹침" />
+        <div className="flex flex-wrap gap-3 text-xs text-mut">
+          <Legend cls="bg-primary-soft" label="합주" />
+          <Legend cls="bg-meeting-bg" label="회의" />
+          <Legend cls="bg-danger-bg" label="방 중복" />
+          <Legend cls="bg-warn-bg" label="시간 겹침" />
         </div>
       </main>
     </>
@@ -196,8 +221,8 @@ export default async function CalendarPage({
 
 function Legend({ cls, label }: { cls: string; label: string }) {
   return (
-    <span className="flex items-center gap-1">
-      <span className={`inline-block h-3 w-3 rounded border ${cls}`} />
+    <span className="flex items-center gap-1.5">
+      <span className={`inline-block h-3 w-3 rounded-[4px] border ${cls}`} />
       {label}
     </span>
   );
