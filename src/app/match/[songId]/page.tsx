@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { and, asc, eq, inArray } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
+import { Button } from '@/components/Button';
 import { CopyButton } from '@/components/CopyButton';
 import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -26,7 +27,7 @@ import {
 } from '@/lib/matching/slots';
 import { outboxSummon } from '@/lib/messages';
 import { isSongArchived } from '@/lib/archive';
-import { cancelVote, castBallot, createVote, summon } from './actions';
+import { cancelVote, castBallot, confirmVote, createVote, summon } from './actions';
 
 const fmtSlot = (slot: number, durMin: number): string =>
   fmtSlotRange(slot, durationToHours(durMin));
@@ -268,11 +269,27 @@ async function VoteSection({
           투표 중 · 마감 {vote.voteCloseAt.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
         </p>
         {isAdmin && (
-          <form action={cancelVote}>
-            <input type="hidden" name="songId" value={songId} />
-            <input type="hidden" name="rehearsalId" value={rehearsalId} />
-            <button className="text-xs text-danger-text hover:underline">투표 취소</button>
-          </form>
+          <div className="flex items-center gap-2">
+            <form action={confirmVote}>
+              <input type="hidden" name="songId" value={songId} />
+              <input type="hidden" name="rehearsalId" value={rehearsalId} />
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                title="지금까지의 표로 즉시 확정합니다"
+              >
+                지금 확정
+              </Button>
+            </form>
+            <form action={cancelVote}>
+              <input type="hidden" name="songId" value={songId} />
+              <input type="hidden" name="rehearsalId" value={rehearsalId} />
+              <Button type="submit" variant="ghost" size="sm">
+                투표 취소
+              </Button>
+            </form>
+          </div>
         )}
       </div>
 

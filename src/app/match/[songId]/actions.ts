@@ -13,6 +13,7 @@ import {
   songs,
 } from '@/lib/db/schema';
 import { requireMembership, requireOrgAdmin } from '@/lib/org';
+import { confirmVoteNow } from '@/lib/matching/close';
 import { slotToDate } from '@/lib/matching/slots';
 import { enqueueOutbox } from '@/lib/outbox';
 import { outboxSummon } from '@/lib/messages';
@@ -160,6 +161,22 @@ export async function summon(formData: FormData) {
   await db.transaction(async (tx) => {
     await enqueueOutbox(tx, orgId, outboxSummon(song.title, reh.startAt, reh.durationMin, link));
   });
+  revalidatePath(`/match/${songId}`);
+}
+
+/**
+ * 투표 즉시 확정(운영진) — 마감 전이라도 현재 표로 집계해 확정/충돌 처리.
+ * cron 마감과 동일 로직·동일 락을 쓰므로 더블부킹 없이 안전.
+ */
+export async function confirmVote(formData: FormData) {
+  const songId = String(formData.get('songId') ?? '');
+  const rehearsalId = String(formData.get('rehearsalId') ?? '');
+  const orgId = await songOrg(songId);
+  await requireOrgAdmin(orgId);
+  await assertSongActive(songId);
+
+  const res = await confirmVoteNow(rehearsalId, orgId);
+  if (res.outcome === 'notfound') throw new Error('진행 중인 투표가 아닙니다.');
   revalidatePath(`/match/${songId}`);
 }
 

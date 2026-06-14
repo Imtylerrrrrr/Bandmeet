@@ -86,6 +86,106 @@ async function notifyConflictOf(
   await notifyUsers(tx, vote.orgId, members, notifyConflict(vote.songTitle), `/match/${vote.songId}`);
 }
 
+/** 곡 담당자(알림 수신자) id 조회기(tx 바인딩). */
+const memberIdsOfTx = (tx: Tx) => async (songId: string) =>
+  (
+    await tx
+      .select({ userId: songMembers.userId })
+      .from(songMembers)
+      .where(eq(songMembers.songId, songId))
+  ).map((r) => r.userId);
+
+/**
+ * 한 합주의 투표 1건을 정산(마감 cron 과 임의확정이 공유).
+ * 옵션 집계 → 빈 슬롯 중 최상위 → confirmed(+알림) / 빈 슬롯 없으면 conflict(+재투표 알림).
+ * 점유는 트랜잭션 자기 가시성으로 직전 확정까지 반영된다.
+ */
+async function settleVote(
+  tx: Tx,
+  vote: {
+    voteId: string;
+    rehearsalId: string;
+    orgId: string;
+    songId: string;
+    songTitle: string;
+  },
+  memberIdsOf: (songId: string) => Promise<string[]>,
+): Promise<{ outcome: 'confirmed' | 'conflict'; optionId?: string }> {
+  const options = await tx
+    .select()
+    .from(rehearsalVoteOptions)
+    .where(eq(rehearsalVoteOptions.voteId, vote.voteId));
+
+  // 옵션이 없는 비정상 투표 → 확정 불가, 충돌로.
+  if (options.length === 0) {
+    await tx
+      .update(rehearsals)
+      .set({ status: 'conflict' })
+      .where(eq(rehearsals.id, vote.rehearsalId));
+    await notifyConflictOf(tx, vote, memberIdsOf);
+    return { outcome: 'conflict' };
+  }
+
+  const optionIds = options.map((o) => o.id);
+  const ballots = await tx
+    .select({
+      optionId: rehearsalVoteBallots.optionId,
+      rank: rehearsalVoteBallots.rank,
+    })
+    .from(rehearsalVoteBallots)
+    .where(inArray(rehearsalVoteBallots.optionId, optionIds));
+
+  const tallied = tallyVotes(
+    options.map((o) => ({
+      id: o.id,
+      start: instantToSlot(o.slotStart),
+      duration: durationToHours(o.durationMin),
+    })),
+    ballots,
+  );
+
+  const occupied = await loadOccupied(tx, vote.orgId);
+  const winner = pickWinner(tallied, occupied);
+
+  if (!winner) {
+    await tx
+      .update(rehearsals)
+      .set({ status: 'conflict' })
+      .where(eq(rehearsals.id, vote.rehearsalId));
+    await notifyConflictOf(tx, vote, memberIdsOf);
+    return { outcome: 'conflict' };
+  }
+
+  // 원래 옵션의 정확한 timestamp/duration 으로 확정(slot 반올림값 말고).
+  const winOpt = options.find((o) => o.id === winner.id)!;
+  await tx
+    .update(rehearsals)
+    .set({
+      startAt: winOpt.slotStart,
+      durationMin: winOpt.durationMin,
+      status: 'confirmed',
+    })
+    .where(eq(rehearsals.id, vote.rehearsalId));
+
+  // 단톡 아웃박스 + 곡 담당자 인앱 알림 (확정과 원자적).
+  const members = await memberIdsOf(vote.songId);
+  await enqueueOutbox(
+    tx,
+    vote.orgId,
+    outboxConfirmed(vote.songTitle, winOpt.slotStart, winOpt.durationMin),
+    `confirmed:${vote.rehearsalId}`,
+  );
+  await notifyUsers(
+    tx,
+    vote.orgId,
+    members,
+    notifyConfirmed(vote.songTitle, winOpt.slotStart, winOpt.durationMin),
+    `/match/${vote.songId}`,
+  );
+
+  return { outcome: 'confirmed', optionId: winner.id };
+}
+
 /** voteCloseAt ≤ now 이고 합주가 'voting' 인 투표를 모두 마감 처리. */
 export async function closeDueVotes(now: Date): Promise<CloseSummary> {
   return db.transaction(async (tx) => {
@@ -105,14 +205,7 @@ export async function closeDueVotes(now: Date): Promise<CloseSummary> {
       .innerJoin(songs, eq(rehearsals.songId, songs.id))
       .where(and(lte(rehearsalVotes.voteCloseAt, now), eq(rehearsals.status, 'voting')));
 
-    // 곡 담당자(알림 수신자) 조회.
-    const memberIdsOf = async (songId: string) =>
-      (
-        await tx
-          .select({ userId: songMembers.userId })
-          .from(songMembers)
-          .where(eq(songMembers.songId, songId))
-      ).map((r) => r.userId);
+    const memberIdsOf = memberIdsOfTx(tx);
 
     const summary: CloseSummary = {
       processed: 0,
@@ -128,91 +221,56 @@ export async function closeDueVotes(now: Date): Promise<CloseSummary> {
       seenRehearsals.add(vote.rehearsalId);
       summary.processed++;
 
-      const options = await tx
-        .select()
-        .from(rehearsalVoteOptions)
-        .where(eq(rehearsalVoteOptions.voteId, vote.voteId));
-
-      // 옵션이 없는 비정상 투표 → 확정 불가, 충돌로.
-      if (options.length === 0) {
-        await tx
-          .update(rehearsals)
-          .set({ status: 'conflict' })
-          .where(eq(rehearsals.id, vote.rehearsalId));
-        await notifyConflictOf(tx, vote, memberIdsOf);
-        summary.conflicts++;
-        summary.details.push({ rehearsalId: vote.rehearsalId, outcome: 'conflict' });
-        continue;
-      }
-
-      const optionIds = options.map((o) => o.id);
-      const ballots = await tx
-        .select({
-          optionId: rehearsalVoteBallots.optionId,
-          rank: rehearsalVoteBallots.rank,
-        })
-        .from(rehearsalVoteBallots)
-        .where(inArray(rehearsalVoteBallots.optionId, optionIds));
-
-      const tallied = tallyVotes(
-        options.map((o) => ({
-          id: o.id,
-          start: instantToSlot(o.slotStart),
-          duration: durationToHours(o.durationMin),
-        })),
-        ballots,
-      );
-
-      // 직전 확정까지 반영된 최신 점유로 빈 슬롯 판정(트랜잭션 자기 가시성).
-      const occupied = await loadOccupied(tx, vote.orgId);
-      const winner = pickWinner(tallied, occupied);
-
-      if (!winner) {
-        await tx
-          .update(rehearsals)
-          .set({ status: 'conflict' })
-          .where(eq(rehearsals.id, vote.rehearsalId));
-        await notifyConflictOf(tx, vote, memberIdsOf);
-        summary.conflicts++;
-        summary.details.push({ rehearsalId: vote.rehearsalId, outcome: 'conflict' });
-        continue;
-      }
-
-      // 원래 옵션의 정확한 timestamp/duration 으로 확정(slot 반올림값 말고).
-      const winOpt = options.find((o) => o.id === winner.id)!;
-      await tx
-        .update(rehearsals)
-        .set({
-          startAt: winOpt.slotStart,
-          durationMin: winOpt.durationMin,
-          status: 'confirmed',
-        })
-        .where(eq(rehearsals.id, vote.rehearsalId));
-
-      // 단톡 아웃박스 + 곡 담당자 인앱 알림 (확정과 원자적).
-      const members = await memberIdsOf(vote.songId);
-      await enqueueOutbox(
-        tx,
-        vote.orgId,
-        outboxConfirmed(vote.songTitle, winOpt.slotStart, winOpt.durationMin),
-        `confirmed:${vote.rehearsalId}`,
-      );
-      await notifyUsers(
-        tx,
-        vote.orgId,
-        members,
-        notifyConfirmed(vote.songTitle, winOpt.slotStart, winOpt.durationMin),
-        `/match/${vote.songId}`,
-      );
-
-      summary.confirmed++;
+      const res = await settleVote(tx, vote, memberIdsOf);
+      if (res.outcome === 'confirmed') summary.confirmed++;
+      else summary.conflicts++;
       summary.details.push({
         rehearsalId: vote.rehearsalId,
-        outcome: 'confirmed',
-        optionId: winner.id,
+        outcome: res.outcome,
+        optionId: res.optionId,
       });
     }
 
     return summary;
+  });
+}
+
+/**
+ * 운영진이 마감 전이라도 한 합주의 투표를 즉시 확정(또는 충돌).
+ * cron 마감과 동일 로직(settleVote)을 동일 advisory lock 으로 직렬화 →
+ * cron 과 동시에 같은 빈 슬롯을 확정하는 더블부킹을 방지.
+ * 반환: notfound = 그 합주에 진행 중 투표가 없음.
+ */
+export async function confirmVoteNow(
+  rehearsalId: string,
+  orgId: string,
+): Promise<{ outcome: 'confirmed' | 'conflict' | 'notfound' }> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(${CLOSE_LOCK_KEY})`);
+
+    // 해당 합주의 진행 중(voting) 투표 1건 — 마감 시각 무시.
+    const [vote] = await tx
+      .select({
+        voteId: rehearsalVotes.id,
+        rehearsalId: rehearsals.id,
+        orgId: rehearsals.orgId,
+        songId: rehearsals.songId,
+        songTitle: songs.title,
+      })
+      .from(rehearsalVotes)
+      .innerJoin(rehearsals, eq(rehearsalVotes.rehearsalId, rehearsals.id))
+      .innerJoin(songs, eq(rehearsals.songId, songs.id))
+      .where(
+        and(
+          eq(rehearsals.id, rehearsalId),
+          eq(rehearsals.orgId, orgId),
+          eq(rehearsals.status, 'voting'),
+        ),
+      )
+      .limit(1);
+    if (!vote) return { outcome: 'notfound' as const };
+
+    const res = await settleVote(tx, vote, memberIdsOfTx(tx));
+    return { outcome: res.outcome };
   });
 }
