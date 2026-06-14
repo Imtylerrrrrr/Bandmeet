@@ -43,25 +43,24 @@ export default async function AvailabilityPage() {
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-3xl flex-col gap-8 p-6">
-        <div>
-          <h1 className="text-lg font-bold">가용성</h1>
-          <p className="text-sm text-gray-500">
-            합주·회의 매칭에 쓰이는 가능 시간입니다. 한 번 칠하면 {active.orgName}의 모든
-            팀·곡 매칭에 공유됩니다.
+      <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-6">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[19px] font-semibold tracking-tight">되는 시간</h1>
+          <p className="text-sm text-mut">
+            칠해두면 합주가 자동으로 잡혀요. 한 번 칠하면 {active.orgName}의 모든 팀·곡에 공유돼요.
           </p>
         </div>
 
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold">주간 반복 (기본)</h2>
+          <h2 className="text-[15px] font-semibold">주간 반복 (기본)</h2>
           <AvailabilityGrid orgId={active.orgId} initial={templateRows} />
         </section>
 
-        <hr className="border-gray-100" />
+        <hr className="border-line" />
 
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold">날짜별 예외</h2>
-          <p className="text-xs text-gray-500">
+          <h2 className="text-[15px] font-semibold">날짜별 예외</h2>
+          <p className="text-xs text-mut">
             특정 날짜만 다르면 여기서 덮어쓰세요 (예: 시험 기간, 공연 전날).
           </p>
           <ExceptionEditor

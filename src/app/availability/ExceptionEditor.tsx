@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { IconCheck } from '@tabler/icons-react';
 
 import { saveException } from './actions';
 import type { Cell, ExcTier, ExceptionCell } from './types';
@@ -110,20 +111,20 @@ export function ExceptionEditor({
             setDate(e.target.value || todayStr());
             setSavedMsg(null);
           }}
-          className="rounded-md border px-2 py-1 text-sm"
+          className="rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong"
         />
-        <span className="text-sm text-gray-500">
-          {WEEKDAYS[wd]}요일
-        </span>
+        <span className="text-sm text-mut">{WEEKDAYS[wd]}요일</span>
         <div className="ml-auto flex items-center gap-3">
-          {savedMsg && <span className="text-xs text-green-600">{savedMsg}</span>}
-          {isDirty && !savedMsg && (
-            <span className="text-xs text-gray-400">저장 안 됨</span>
+          {savedMsg && (
+            <span className="flex items-center gap-1 text-xs font-medium text-ok-text">
+              <IconCheck size={14} stroke={2} /> {savedMsg}
+            </span>
           )}
+          {isDirty && !savedMsg && <span className="text-xs text-faint">저장 안 됨</span>}
           <button
             onClick={save}
             disabled={!isDirty || pending}
-            className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity duration-150 hover:opacity-90 disabled:opacity-40"
           >
             {pending ? '저장 중…' : '이 날짜 저장'}
           </button>
@@ -153,9 +154,9 @@ export function ExceptionEditor({
               onPointerEnter={() => {
                 if (painting.current) paint(h);
               }}
-              className="flex cursor-pointer items-center gap-2 border-b border-gray-100"
+              className="flex cursor-pointer items-center gap-2 border-b"
             >
-              <span className="w-10 py-1.5 text-right text-xs text-gray-400">
+              <span className="w-10 py-1.5 text-right text-xs tabular-nums text-faint">
                 {String(h).padStart(2, '0')}
               </span>
               <CellBody has={has} exc={exc} base={base} />
@@ -164,7 +165,7 @@ export function ExceptionEditor({
         })}
       </div>
 
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-mut">
         그 날짜만 템플릿을 덮어씁니다. 🚫불가 = 그 시간 불가로 고정, ↩️템플릿 = 예외 지우고
         주간 반복값 따름.
       </p>
@@ -182,23 +183,19 @@ function CellBody({
   base: 'green' | 'yellow' | undefined;
 }) {
   if (has) {
-    if (exc === 'green')
-      return <Bar className="bg-green-400 text-green-950">가능</Bar>;
-    if (exc === 'yellow')
-      return <Bar className="bg-yellow-300 text-yellow-900">되면</Bar>;
-    return <Bar className="bg-red-200 text-red-700">불가 ✕</Bar>; // exc === null
+    if (exc === 'green') return <Bar className="bg-ok-paint text-ok-text">가능</Bar>;
+    if (exc === 'yellow') return <Bar className="bg-warn-paint text-warn-text">되면</Bar>;
+    return <Bar className="bg-danger-bg text-danger-text">불가 ✕</Bar>; // exc === null
   }
   // 예외 없음 → 템플릿 baseline (흐리게)
-  if (base === 'green')
-    return <Bar className="bg-green-100 text-green-600">가능 · 템플릿</Bar>;
-  if (base === 'yellow')
-    return <Bar className="bg-yellow-100 text-yellow-700">되면 · 템플릿</Bar>;
-  return <Bar className="bg-gray-50 text-gray-300">— · 템플릿</Bar>;
+  if (base === 'green') return <Bar className="bg-ok-bg text-ok-text">가능 · 템플릿</Bar>;
+  if (base === 'yellow') return <Bar className="bg-warn-bg text-warn-text">되면 · 템플릿</Bar>;
+  return <Bar className="bg-canvas text-faint">— · 템플릿</Bar>;
 }
 
 function Bar({ className, children }: { className: string; children: React.ReactNode }) {
   return (
-    <span className={`my-0.5 flex-1 rounded px-2 py-1.5 text-xs ${className}`}>
+    <span className={`my-0.5 flex-1 rounded-md px-2 py-1.5 text-xs font-medium ${className}`}>
       {children}
     </span>
   );
@@ -216,8 +213,8 @@ function BrushBtn({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full border px-3 py-1 text-sm ${
-        active ? 'border-black bg-black text-white' : 'hover:bg-gray-50'
+      className={`rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-colors duration-150 ${
+        active ? 'border-ink bg-ink text-white' : 'text-mut hover:bg-hover hover:text-ink'
       }`}
     >
       {label}

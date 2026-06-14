@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
+import { IconHandFinger, IconCheck } from '@tabler/icons-react';
 
 import { saveTemplate } from './actions';
 import type { Cell, Tier } from './types';
@@ -14,8 +15,8 @@ type Brush = Tier | 'erase';
 const slotKey = (w: number, h: number) => `${w}-${h}`;
 
 const TIER_BG: Record<Tier, string> = {
-  green: 'bg-green-400',
-  yellow: 'bg-yellow-300',
+  green: 'bg-ok-paint',
+  yellow: 'bg-warn-paint',
 };
 
 export function AvailabilityGrid({
@@ -73,22 +74,31 @@ export function AvailabilityGrid({
     });
   };
 
+  const paintedCount = Object.keys(cells).length;
+
   return (
     <div className="flex flex-col gap-4">
-      {/* 브러시 + 저장 */}
+      {/* 브러시 + 요약 + 저장 */}
       <div className="flex flex-wrap items-center gap-2">
-        <BrushButton label="🟢 가능" active={brush === 'green'} onClick={() => setBrush('green')} />
-        <BrushButton label="🟡 되면" active={brush === 'yellow'} onClick={() => setBrush('yellow')} />
-        <BrushButton label="⨯ 지우기" active={brush === 'erase'} onClick={() => setBrush('erase')} />
+        <div className="flex items-center gap-1.5">
+          <BrushButton dot="bg-ok-paint" label="가능" active={brush === 'green'} onClick={() => setBrush('green')} />
+          <BrushButton dot="bg-warn-paint" label="되면" active={brush === 'yellow'} onClick={() => setBrush('yellow')} />
+          <BrushButton dot="bg-faint" label="지우기" active={brush === 'erase'} onClick={() => setBrush('erase')} />
+        </div>
+        <span className="rounded-md bg-ok-bg px-2 py-1 text-xs font-medium tabular-nums text-ok-text">
+          이번 주 {paintedCount}칸
+        </span>
         <div className="ml-auto flex items-center gap-3">
-          {savedMsg && <span className="text-xs text-green-600">{savedMsg}</span>}
-          {dirty && !savedMsg && (
-            <span className="text-xs text-gray-400">저장 안 됨</span>
+          {savedMsg && (
+            <span className="flex items-center gap-1 text-xs font-medium text-ok-text">
+              <IconCheck size={14} stroke={2} /> {savedMsg}
+            </span>
           )}
+          {dirty && !savedMsg && <span className="text-xs text-faint">저장 안 됨</span>}
           <button
             onClick={save}
             disabled={!dirty || pending}
-            className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity duration-150 hover:opacity-90 disabled:opacity-40"
           >
             {pending ? '저장 중…' : '저장'}
           </button>
@@ -98,9 +108,9 @@ export function AvailabilityGrid({
       {/* 격자 */}
       <div className="overflow-x-auto">
         <div
-          className="inline-grid select-none"
+          className="inline-grid select-none gap-[3px]"
           style={{
-            gridTemplateColumns: `3rem repeat(7, minmax(2.5rem, 1fr))`,
+            gridTemplateColumns: `2.5rem repeat(7, minmax(2.5rem, 1fr))`,
             touchAction: 'none',
           }}
         >
@@ -110,7 +120,7 @@ export function AvailabilityGrid({
             <div
               key={d}
               className={`pb-1 text-center text-xs font-medium ${
-                i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-600'
+                i === 0 ? 'text-danger-text/70' : i === 6 ? 'text-primary' : 'text-mut'
               }`}
             >
               {d}
@@ -133,8 +143,8 @@ export function AvailabilityGrid({
                     onPointerEnter={() => {
                       if (painting.current) paint(w, h);
                     }}
-                    className={`h-7 cursor-pointer border border-gray-100 ${
-                      tier ? TIER_BG[tier] : 'bg-gray-50 hover:bg-gray-100'
+                    className={`h-7 cursor-pointer rounded-md transition-colors duration-100 ${
+                      tier ? TIER_BG[tier] : 'bg-canvas hover:bg-hover'
                     }`}
                   />
                 );
@@ -144,8 +154,9 @@ export function AvailabilityGrid({
         </div>
       </div>
 
-      <p className="text-xs text-gray-400">
-        칸을 드래그해 칠하세요. 매주 반복되는 기본 가용성입니다 (10:00–24:00).
+      <p className="flex items-center gap-1.5 text-xs text-faint">
+        <IconHandFinger size={14} stroke={1.5} />
+        칸을 드래그해 칠하세요. 매주 반복되는 기본 시간이에요 (10:00–24:00).
       </p>
     </div>
   );
@@ -160,7 +171,7 @@ function FragmentRow({
 }) {
   return (
     <>
-      <div className="flex h-7 items-center justify-end pr-2 text-xs text-gray-400">
+      <div className="flex h-7 items-center justify-end pr-2 text-xs tabular-nums text-faint">
         {String(hour).padStart(2, '0')}
       </div>
       {children}
@@ -169,10 +180,12 @@ function FragmentRow({
 }
 
 function BrushButton({
+  dot,
   label,
   active,
   onClick,
 }: {
+  dot: string;
   label: string;
   active: boolean;
   onClick: () => void;
@@ -180,10 +193,11 @@ function BrushButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-full border px-3 py-1 text-sm ${
-        active ? 'border-black bg-black text-white' : 'hover:bg-gray-50'
+      className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-colors duration-150 ${
+        active ? 'border-ink bg-ink text-white' : 'text-mut hover:bg-hover hover:text-ink'
       }`}
     >
+      <span className={`inline-block h-2.5 w-2.5 rounded-full ${dot}`} />
       {label}
     </button>
   );
