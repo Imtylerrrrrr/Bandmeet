@@ -2,39 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  IconHome,
-  IconCalendarMonth,
-  IconMicrophone2,
-  IconClock,
-  IconUsers,
-  IconBell,
-  IconSettings,
-  type IconProps,
-} from '@tabler/icons-react';
-import type { ComponentType } from 'react';
 
-type Item = { href: string; label: string; Icon: ComponentType<IconProps> };
+import { NAV_ITEMS, SETTINGS_ITEM, isActive } from './nav-items';
 
-const ITEMS: Item[] = [
-  { href: '/', label: '홈', Icon: IconHome },
-  { href: '/calendar', label: '캘린더', Icon: IconCalendarMonth },
-  { href: '/perf', label: '공연', Icon: IconMicrophone2 },
-  { href: '/availability', label: '내 시간', Icon: IconClock },
-  { href: '/members', label: '멤버', Icon: IconUsers },
-  { href: '/notifications', label: '알림', Icon: IconBell },
-];
-
-const SETTINGS: Item = { href: '/settings', label: '설정', Icon: IconSettings };
-
+// 데스크탑(md+) 인라인 네비. 모바일은 MobileNav 드로어가 담당.
 export function NavLinks({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
-  const items = isAdmin ? [...ITEMS, SETTINGS] : ITEMS;
+  const items = isAdmin ? [...NAV_ITEMS, SETTINGS_ITEM] : NAV_ITEMS;
 
   return (
-    <nav className="flex flex-wrap items-center gap-0.5">
+    <nav className="hidden items-center gap-0.5 md:flex">
       {items.map(({ href, label, Icon }) => {
-        const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
+        const active = isActive(pathname, href);
         return (
           <Link
             key={href}
