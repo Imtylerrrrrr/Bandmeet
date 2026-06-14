@@ -5,7 +5,7 @@ import { Button } from '@/components/Button';
 import { db } from '@/lib/db';
 import { chatBindings } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
-import { removeBinding, setBinding } from './actions';
+import { removeBinding, renameOrg, setBinding } from './actions';
 
 export default async function SettingsPage() {
   const { active, all } = await requireActiveOrg();
@@ -21,6 +21,26 @@ export default async function SettingsPage() {
       <AppHeader active={active} all={all} />
       <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 sm:px-6">
         <h1 className="text-[19px] font-semibold tracking-tight">설정</h1>
+
+        {isAdmin && (
+          <section className="flex flex-col gap-2">
+            <h2 className="text-[15px] font-semibold">동아리 이름</h2>
+            <form action={renameOrg} className="flex flex-col gap-2 sm:flex-row">
+              <input type="hidden" name="orgId" value={active.orgId} />
+              <input
+                name="name"
+                required
+                maxLength={40}
+                defaultValue={active.orgName}
+                className="w-full rounded-lg border bg-surface px-3 py-2 text-sm transition-colors duration-150 hover:border-line-strong sm:flex-1"
+              />
+              <Button type="submit" variant="primary">
+                저장
+              </Button>
+            </form>
+            <p className="text-xs text-mut">헤더·전 화면에 바로 반영됩니다.</p>
+          </section>
+        )}
 
         <section className="flex flex-col gap-3">
           <div>

@@ -4,8 +4,18 @@ import { revalidatePath } from 'next/cache';
 import { and, eq, ne } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
-import { chatBindings } from '@/lib/db/schema';
+import { chatBindings, orgs } from '@/lib/db/schema';
 import { requireOrgAdmin } from '@/lib/org';
+
+/** 동아리 이름 변경(운영진). 헤더·전 화면에 반영. */
+export async function renameOrg(formData: FormData) {
+  const orgId = String(formData.get('orgId') ?? '');
+  const name = String(formData.get('name') ?? '').trim();
+  await requireOrgAdmin(orgId);
+  if (!name) throw new Error('동아리 이름을 입력하세요.');
+  await db.update(orgs).set({ name }).where(eq(orgs.id, orgId));
+  revalidatePath('/', 'layout');
+}
 
 /** 단톡방 ↔ org 바인딩 설정/변경(운영진). org 당 1개. */
 export async function setBinding(formData: FormData) {
