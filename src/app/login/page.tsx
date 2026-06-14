@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { signInWithKakao } from '@/app/auth/actions';
@@ -16,14 +17,22 @@ export default async function LoginPage() {
           <p className="mt-1.5 text-sm text-mut">되는 시간을 칠하면 합주가 자동으로 잡혀요</p>
         </div>
       </div>
-      <form action={signInWithKakao}>
-        <button
-          type="submit"
-          className="rounded-lg bg-[#FEE500] px-6 py-3 text-sm font-semibold text-[#191600] transition-[filter] duration-150 hover:brightness-95"
+      <div className="flex flex-col items-center gap-3">
+        <form action={signInWithKakao}>
+          <button
+            type="submit"
+            className="rounded-lg bg-[#FEE500] px-6 py-3 text-sm font-semibold text-[#191600] transition-[filter] duration-150 hover:brightness-95"
+          >
+            카카오로 로그인
+          </button>
+        </form>
+        <Link
+          href="/demo"
+          className="text-sm text-mut underline-offset-2 transition-colors hover:text-ink hover:underline"
         >
-          카카오로 로그인
-        </button>
-      </form>
+          로그인 없이 둘러보기 →
+        </Link>
+      </div>
     </main>
   );
 }
