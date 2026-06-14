@@ -76,16 +76,16 @@ export default async function TeamDetailPage({
           {perf && (
             <Link
               href={`/perf/${perf.id}`}
-              className="text-xs text-gray-500 hover:underline"
+              className="text-xs text-mut hover:underline"
             >
               ← {perf.name}
             </Link>
           )}
-          <h1 className="mt-1 text-lg font-bold">{team.name}</h1>
+          <h1 className="mt-1 text-[19px] font-semibold tracking-tight">{team.name}</h1>
         </div>
 
         {archived && (
-          <p className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+          <p className="rounded-lg border border-line bg-hover p-3 text-sm text-mut">
             🔒 아카이브된 공연의 팀입니다. 읽기 전용입니다.
           </p>
         )}
@@ -94,7 +94,7 @@ export default async function TeamDetailPage({
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold">팀원 ({members.length})</h2>
           {members.length === 0 ? (
-            <p className="text-sm text-gray-500">아직 팀원이 없습니다.</p>
+            <p className="text-sm text-mut">아직 팀원이 없습니다.</p>
           ) : (
             <ul className="flex flex-wrap gap-2">
               {members.map((m) => (
@@ -107,7 +107,7 @@ export default async function TeamDetailPage({
                     <form action={removeTeamMember}>
                       <input type="hidden" name="teamId" value={team.id} />
                       <input type="hidden" name="userId" value={m.userId} />
-                      <button className="text-xs text-red-500 hover:text-red-700">
+                      <button className="text-xs text-danger-text hover:opacity-70">
                         ×
                       </button>
                     </form>
@@ -133,7 +133,7 @@ export default async function TeamDetailPage({
                   </option>
                 ))}
               </select>
-              <button className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50">
+              <button className="rounded-md border px-3 py-1 text-sm hover:bg-hover">
                 추가
               </button>
             </form>
@@ -146,7 +146,7 @@ export default async function TeamDetailPage({
             <h2 className="text-sm font-semibold">곡 ({songRows.length})</h2>
             <Link
               href={`/team/${team.id}/assign`}
-              className="text-xs text-blue-600 hover:underline"
+              className="text-xs text-primary hover:underline"
             >
               곡-사람 배치 →
             </Link>
@@ -161,14 +161,14 @@ export default async function TeamDetailPage({
                 placeholder="곡 제목"
                 className="flex-1 rounded-md border px-3 py-2 text-sm"
               />
-              <button className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+              <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
                 추가
               </button>
             </form>
           )}
 
           {songRows.length === 0 ? (
-            <p className="text-sm text-gray-500">아직 곡이 없습니다.</p>
+            <p className="text-sm text-mut">아직 곡이 없습니다.</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {songRows.map((s) => (
@@ -179,10 +179,10 @@ export default async function TeamDetailPage({
                   <span className="font-medium">
                     {s.title}
                     <span
-                      className={`ml-2 rounded px-1.5 py-0.5 text-xs ${
+                      className={`ml-2 rounded-md px-1.5 py-0.5 text-xs font-medium ${
                         s.status === 'confirmed'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-500'
+                          ? 'bg-ok-bg text-ok-text'
+                          : 'bg-hover text-mut'
                       }`}
                     >
                       {s.status === 'confirmed' ? '확정' : '후보'}
@@ -191,7 +191,7 @@ export default async function TeamDetailPage({
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/match/${s.id}`}
-                      className="text-xs text-blue-600 hover:underline"
+                      className="text-xs text-primary hover:underline"
                     >
                       매칭 →
                     </Link>
@@ -204,13 +204,13 @@ export default async function TeamDetailPage({
                             name="status"
                             value={s.status === 'confirmed' ? 'candidate' : 'confirmed'}
                           />
-                          <button className="text-xs text-blue-600 hover:underline">
+                          <button className="text-xs text-primary hover:underline">
                             {s.status === 'confirmed' ? '후보로' : '확정으로'}
                           </button>
                         </form>
                         <form action={deleteSong}>
                           <input type="hidden" name="songId" value={s.id} />
-                          <button className="text-xs text-red-600 hover:underline">
+                          <button className="text-xs text-danger-text hover:underline">
                             삭제
                           </button>
                         </form>

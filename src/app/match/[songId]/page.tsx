@@ -68,14 +68,14 @@ export default async function MatchPage({
       <AppHeader active={active} all={all} />
       <main className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
         <div>
-          <Link href={`/team/${song.teamId}`} className="text-xs text-gray-500 hover:underline">
+          <Link href={`/team/${song.teamId}`} className="text-xs text-mut hover:underline">
             ← 팀으로
           </Link>
-          <h1 className="mt-1 text-lg font-bold">합주 매칭 · {song.title}</h1>
+          <h1 className="mt-1 text-[19px] font-semibold tracking-tight">합주 매칭 · {song.title}</h1>
         </div>
 
         {archived && (
-          <p className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+          <p className="rounded-lg border border-line bg-hover p-3 text-sm text-mut">
             🔒 아카이브된 공연입니다. 새 투표·확정·소집은 할 수 없습니다(읽기 전용).
           </p>
         )}
@@ -127,12 +127,12 @@ function ConfirmedSection({
         return (
           <div
             key={r.id}
-            className="flex flex-col gap-2 rounded-lg border border-green-200 bg-green-50 p-3"
+            className="flex flex-col gap-2 rounded-xl bg-ok-bg/50 p-3.5"
           >
-            <span className="text-sm font-medium text-green-800">
+            <span className="flex items-center gap-1.5 text-sm font-semibold text-ok-text">
               {fmtSlot(instantToSlot(r.startAt), r.durationMin)}
             </span>
-            <pre className="whitespace-pre-wrap rounded border bg-white p-2 text-xs text-gray-700">
+            <pre className="whitespace-pre-wrap rounded-lg border bg-surface p-2.5 text-xs text-ink">
               {msg}
             </pre>
             <div className="flex items-center gap-2">
@@ -141,7 +141,7 @@ function ConfirmedSection({
                 <form action={summon}>
                   <input type="hidden" name="songId" value={songId} />
                   <input type="hidden" name="rehearsalId" value={r.id} />
-                  <button className="rounded bg-black px-3 py-1 text-xs font-medium text-white hover:opacity-90">
+                  <button className="rounded-lg bg-primary px-3 py-1 text-xs font-medium text-white hover:opacity-90">
                     단톡 소집 보내기
                   </button>
                 </form>
@@ -165,17 +165,17 @@ async function RecommendSection({ songId, isAdmin }: { songId: string; isAdmin: 
 
   return (
     <section className="flex flex-col gap-4">
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-mut">
         담당자 {loaded.members.length}명 ·{' '}
         {loaded.members.map((m) => m.name).join(', ') || '담당자 없음'}
       </p>
 
       {loaded.members.length === 0 ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-mut">
           먼저 곡-사람 배치에서 담당자를 지정하세요.
         </p>
       ) : recs.length === 0 ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-mut">
           담당자 전원이 동시에 가능한 시간이 없습니다. 가용성 입력을 확인하세요.
         </p>
       ) : isAdmin ? (
@@ -185,7 +185,7 @@ async function RecommendSection({ songId, isAdmin }: { songId: string; isAdmin: 
           <ul className="flex flex-col gap-1">
             {recs.map((r) => (
               <li key={`${r.start}:${r.duration}`}>
-                <label className="flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-gray-50">
+                <label className="flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-hover">
                   <input type="checkbox" name="pick" value={`${r.start}:${r.duration}`} />
                   <span className="font-medium">{fmtSlot(r.start, r.duration * 60)}</span>
                   <SlotBadges
@@ -197,7 +197,7 @@ async function RecommendSection({ songId, isAdmin }: { songId: string; isAdmin: 
               </li>
             ))}
           </ul>
-          <label className="flex flex-col text-xs text-gray-500">
+          <label className="flex flex-col text-xs text-mut">
             투표 마감
             <input
               type="datetime-local"
@@ -206,7 +206,7 @@ async function RecommendSection({ songId, isAdmin }: { songId: string; isAdmin: 
               className="mt-1 w-fit rounded-md border px-2 py-1 text-sm"
             />
           </label>
-          <button className="self-start rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+          <button className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
             투표 만들기
           </button>
         </form>
@@ -264,14 +264,14 @@ async function VoteSection({
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-mut">
           투표 중 · 마감 {vote.voteCloseAt.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
         </p>
         {isAdmin && (
           <form action={cancelVote}>
             <input type="hidden" name="songId" value={songId} />
             <input type="hidden" name="rehearsalId" value={rehearsalId} />
-            <button className="text-xs text-red-600 hover:underline">투표 취소</button>
+            <button className="text-xs text-danger-text hover:underline">투표 취소</button>
           </form>
         )}
       </div>
@@ -289,7 +289,7 @@ async function VoteSection({
                 className="flex flex-wrap items-center gap-3 rounded-lg border p-3 text-sm"
               >
                 <span className="font-medium">{fmtSlot(slot, o.durationMin)}</span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-faint">
                   1순위 {tally(o.id, 1)} · 2순위 {tally(o.id, 2)} · 3순위 {tally(o.id, 3)}
                 </span>
                 {canVote && (
@@ -309,13 +309,13 @@ async function VoteSection({
           })}
         </ul>
         {canVote && (
-          <button className="self-start rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+          <button className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
             투표 제출
           </button>
         )}
       </form>
 
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-faint">
         마감 시각이 지나면 매시 자동 집계되어 최다 득표 빈 슬롯으로 확정됩니다.
       </p>
     </section>
@@ -334,17 +334,21 @@ function SlotBadges({
   return (
     <span className="flex gap-1 text-xs">
       {yellow === 0 ? (
-        <span className="rounded bg-green-100 px-1.5 py-0.5 text-green-700">전원 가능</span>
+        <span className="rounded-md bg-ok-bg px-1.5 py-0.5 font-medium text-ok-text">전원 가능</span>
       ) : (
-        <span className="rounded bg-yellow-100 px-1.5 py-0.5 text-yellow-700">
+        <span className="rounded-md bg-warn-bg px-1.5 py-0.5 font-medium text-warn-text">
           되면 {yellow}명
         </span>
       )}
       {continuity > 0 && (
-        <span className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-700">이어서 +{continuity}</span>
+        <span className="rounded-md bg-primary-soft px-1.5 py-0.5 font-medium text-primary-ink">
+          이어서 +{continuity}
+        </span>
       )}
       {roomAdj > 0 && (
-        <span className="rounded bg-purple-100 px-1.5 py-0.5 text-purple-700">방 인접</span>
+        <span className="rounded-md bg-meeting-bg px-1.5 py-0.5 font-medium text-meeting-text">
+          방 인접
+        </span>
       )}
     </span>
   );

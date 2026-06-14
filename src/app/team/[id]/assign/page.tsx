@@ -73,21 +73,21 @@ export default async function AssignPage({
       <AppHeader active={active} all={all} />
       <main className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
         <div>
-          <Link href={`/team/${team.id}`} className="text-xs text-gray-500 hover:underline">
+          <Link href={`/team/${team.id}`} className="text-xs text-mut hover:underline">
             ← {team.name}
           </Link>
-          <h1 className="mt-1 text-lg font-bold">곡-사람 배치</h1>
-          <p className="text-xs text-gray-500">
+          <h1 className="mt-1 text-[19px] font-semibold tracking-tight">곡-사람 배치</h1>
+          <p className="text-xs text-mut">
             누가 어떤 곡을 맡는지 표시합니다. 이 배치가 합주 매칭의 &ldquo;사람 충돌&rdquo; 계산에 쓰입니다.
           </p>
         </div>
 
         {members.length === 0 || songRows.length === 0 ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-mut">
             {members.length === 0
               ? '먼저 팀원을 추가하세요.'
               : '먼저 곡을 추가하세요.'}{' '}
-            <Link href={`/team/${team.id}`} className="text-blue-600 hover:underline">
+            <Link href={`/team/${team.id}`} className="text-primary hover:underline">
               팀 페이지로
             </Link>
           </p>
@@ -96,19 +96,19 @@ export default async function AssignPage({
             <table className="border-collapse text-sm">
               <thead>
                 <tr>
-                  <th className="sticky left-0 z-10 bg-white p-2 text-left">곡 \ 사람</th>
+                  <th className="sticky left-0 z-10 bg-surface p-2 text-left">곡 \ 사람</th>
                   {members.map((m) => (
                     <th key={m.userId} className="min-w-16 p-2 text-center font-medium">
                       {m.name}
                     </th>
                   ))}
-                  <th className="p-2 text-center text-gray-400">인원</th>
+                  <th className="p-2 text-center text-faint">인원</th>
                 </tr>
               </thead>
               <tbody>
                 {songRows.map((s) => (
                   <tr key={s.id} className="border-t">
-                    <td className="sticky left-0 z-10 whitespace-nowrap bg-white p-2 font-medium">
+                    <td className="sticky left-0 z-10 whitespace-nowrap bg-surface p-2 font-medium">
                       {s.title}
                     </td>
                     {members.map((m) => {
@@ -123,8 +123,8 @@ export default async function AssignPage({
                               <button
                                 className={`h-7 w-7 rounded-full text-sm ${
                                   on
-                                    ? 'bg-black text-white'
-                                    : 'border text-gray-300 hover:bg-gray-100'
+                                    ? 'bg-primary text-white'
+                                    : 'border text-faint hover:bg-hover'
                                 }`}
                                 title={on ? '배정됨 (클릭=해제)' : '미배정 (클릭=배정)'}
                               >
@@ -132,14 +132,14 @@ export default async function AssignPage({
                               </button>
                             </form>
                           ) : (
-                            <span className={on ? 'text-black' : 'text-gray-300'}>
+                            <span className={on ? 'text-black' : 'text-faint'}>
                               {on ? '●' : '○'}
                             </span>
                           )}
                         </td>
                       );
                     })}
-                    <td className="p-2 text-center text-gray-500">{countFor(s.id)}</td>
+                    <td className="p-2 text-center text-mut">{countFor(s.id)}</td>
                   </tr>
                 ))}
               </tbody>
