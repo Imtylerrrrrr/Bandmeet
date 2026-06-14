@@ -137,6 +137,7 @@ export async function summon(formData: FormData) {
   const rehearsalId = String(formData.get('rehearsalId') ?? '');
   const orgId = await songOrg(songId);
   await requireOrgAdmin(orgId);
+  await assertSongActive(songId); // 아카이브된 공연은 소집(아웃박스 쓰기)도 차단.
 
   const [reh] = await db
     .select({
@@ -149,10 +150,12 @@ export async function summon(formData: FormData) {
   if (!reh || reh.status !== 'confirmed') throw new Error('확정된 합주가 아닙니다.');
   const [song] = await db.select({ title: songs.title }).from(songs).where(eq(songs.id, songId));
 
+  // 절대 URL: 신뢰 가능한 APP_URL 우선, 없으면 요청 host(프록시 환경 한정).
   const h = await headers();
-  const proto = h.get('x-forwarded-proto') ?? 'http';
-  const host = h.get('host') ?? 'localhost:3000';
-  const link = `${proto}://${host}/match/${songId}`;
+  const base =
+    process.env.APP_URL ??
+    `${h.get('x-forwarded-proto') ?? 'http'}://${h.get('host') ?? 'localhost:3000'}`;
+  const link = `${base}/match/${songId}`;
 
   await db.transaction(async (tx) => {
     await enqueueOutbox(tx, orgId, outboxSummon(song.title, reh.startAt, reh.durationMin, link));

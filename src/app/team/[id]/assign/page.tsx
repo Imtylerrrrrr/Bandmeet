@@ -62,8 +62,11 @@ export default async function AssignPage({
         .where(inArray(songMembers.songId, songIds))
     : [];
   const assignedSet = new Set(assignedRows.map((r) => `${r.songId}:${r.userId}`));
-  const countFor = (songId: string) =>
-    assignedRows.filter((r) => r.songId === songId).length;
+  const countBySong = new Map<string, number>();
+  for (const r of assignedRows) {
+    countBySong.set(r.songId, (countBySong.get(r.songId) ?? 0) + 1);
+  }
+  const countFor = (songId: string) => countBySong.get(songId) ?? 0;
 
   return (
     <>

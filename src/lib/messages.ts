@@ -1,22 +1,10 @@
 // 알림/소집 메시지 텍스트 빌더 (KST 시간 표기). 단톡·인앱 공용.
 
-import {
-  durationToHours,
-  instantToSlot,
-  kstDateStr,
-  kstWeekday,
-} from '@/lib/matching/slots';
+import { durationToHours, fmtSlotRange, instantToSlot } from '@/lib/matching/slots';
 
-const WD = ['일', '월', '화', '수', '목', '금', '토'];
-
-/** 확정 합주 시각을 'M/D(요일) HH:00–HH:00' 로. */
+/** 확정 합주 시각을 'M/D(요일) HH:00–HH:00' 로(공용 fmtSlotRange 위임). */
 export function fmtWhen(startAt: Date, durationMin: number): string {
-  const slot = instantToSlot(startAt);
-  const date = kstDateStr(startAt);
-  const [, m, d] = date.split('-').map(Number);
-  const sh = ((slot % 24) + 24) % 24;
-  const eh = sh + durationToHours(durationMin);
-  return `${m}/${d}(${WD[kstWeekday(date)]}) ${sh}:00–${eh}:00`;
+  return fmtSlotRange(instantToSlot(startAt), durationToHours(durationMin));
 }
 
 /** 단톡 게시용 — 합주 확정. */

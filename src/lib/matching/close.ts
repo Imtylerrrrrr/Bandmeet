@@ -31,7 +31,7 @@ import {
   outboxConfirmed,
   outboxConflict,
 } from '@/lib/messages';
-import { durationToHours, instantToSlot } from './slots';
+import { durationToHours, instantToSlot, toInterval } from './slots';
 import { type Interval, pickWinner, tallyVotes } from './tally';
 
 // 한 번에 하나의 close 실행만 돌도록 하는 advisory lock 키(임의 고정 정수).
@@ -67,12 +67,7 @@ async function loadOccupied(tx: Tx, orgId: string): Promise<Interval[]> {
     .from(meetings)
     .where(eq(meetings.orgId, orgId));
 
-  const occupied: Interval[] = [];
-  for (const r of [...confirmed, ...mtgRows]) {
-    const s = instantToSlot(r.startAt);
-    occupied.push({ start: s, end: s + durationToHours(r.durationMin) });
-  }
-  return occupied;
+  return [...confirmed, ...mtgRows].map((r) => toInterval(r.startAt, r.durationMin));
 }
 
 /** 충돌(빈 슬롯 없음/옵션 없음) 시 아웃박스 + 인앱 알림 (확정 분기와 대칭). */

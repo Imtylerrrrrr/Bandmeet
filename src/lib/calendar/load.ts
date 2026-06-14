@@ -12,7 +12,7 @@ import {
   songs,
 } from '@/lib/db/schema';
 import type { Booking } from './conflicts';
-import { dateHourToSlot, durationToHours, instantToSlot } from '@/lib/matching/slots';
+import { dateHourToSlot, toInterval } from '@/lib/matching/slots';
 
 export interface WeekBookings {
   weekStart: string; // 'YYYY-MM-DD' (그 주 일요일)
@@ -66,10 +66,7 @@ export async function loadOrgWeek(
 
   // 그 주 합주의 곡 → 참여자.
   const weekReh = rehRows
-    .map((r) => {
-      const s = instantToSlot(r.startAt);
-      return { ...r, start: s, end: s + durationToHours(r.durationMin) };
-    })
+    .map((r) => ({ ...r, ...toInterval(r.startAt, r.durationMin) }))
     .filter((r) => inWeek(r, wStart, wEnd));
 
   const songIds = [...new Set(weekReh.map((r) => r.songId))];
@@ -98,17 +95,9 @@ export async function loadOrgWeek(
     });
   }
   for (const m of mtgRows) {
-    const s = instantToSlot(m.startAt);
-    const e = s + durationToHours(m.durationMin);
-    if (!inWeek({ start: s, end: e }, wStart, wEnd)) continue;
-    bookings.push({
-      id: m.id,
-      type: 'meeting',
-      start: s,
-      end: e,
-      title: m.title ?? '회의',
-      members: [],
-    });
+    const iv = toInterval(m.startAt, m.durationMin);
+    if (!inWeek(iv, wStart, wEnd)) continue;
+    bookings.push({ id: m.id, type: 'meeting', ...iv, title: m.title ?? '회의', members: [] });
   }
 
   const nameById = await loadNames(bookings.flatMap((b) => b.members));
@@ -155,14 +144,12 @@ export async function loadPersonalWeek(
         ),
       );
     for (const r of rehRows) {
-      const s = instantToSlot(r.startAt);
-      const e = s + durationToHours(r.durationMin);
-      if (!inWeek({ start: s, end: e }, wStart, wEnd)) continue;
+      const iv = toInterval(r.startAt, r.durationMin);
+      if (!inWeek(iv, wStart, wEnd)) continue;
       bookings.push({
         id: r.id,
         type: 'rehearsal',
-        start: s,
-        end: e,
+        ...iv,
         title: r.title + (r.isExtra ? ' (추가)' : ''),
         members: [userId],
       });
@@ -174,10 +161,9 @@ export async function loadPersonalWeek(
     .from(meetings)
     .where(eq(meetings.orgId, orgId));
   for (const m of mtgRows) {
-    const s = instantToSlot(m.startAt);
-    const e = s + durationToHours(m.durationMin);
-    if (!inWeek({ start: s, end: e }, wStart, wEnd)) continue;
-    bookings.push({ id: m.id, type: 'meeting', start: s, end: e, title: m.title ?? '회의', members: [] });
+    const iv = toInterval(m.startAt, m.durationMin);
+    if (!inWeek(iv, wStart, wEnd)) continue;
+    bookings.push({ id: m.id, type: 'meeting', ...iv, title: m.title ?? '회의', members: [] });
   }
 
   return { weekStart, bookings, nameById: new Map() };

@@ -87,15 +87,26 @@ async function main() {
     const pollData = await pollRes.json();
     check('poll: 미발송 2건 반환', pollData.messages?.length === 2);
 
+    const ids = pollData.messages.map((m) => m.id);
+
+    // 잘못된 room 으로 ack → 타 테넌트 보호(업데이트 0). 메시지 보존돼야 함.
+    await fetch(`${BASE}/api/bot/ack`, {
+      method: 'POST',
+      headers: { ...auth, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ room: '없는방xyz', ids }),
+    });
+    const pollMid = await fetch(`${BASE}/api/bot/poll?room=${encodeURIComponent(ROOM)}`, { headers: auth });
+    check('ack(잘못된 room): 메시지 보존(여전히 2건)', (await pollMid.json()).messages?.length === 2);
+
     const ackRes = await fetch(`${BASE}/api/bot/ack`, {
       method: 'POST',
       headers: { ...auth, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: pollData.messages.map((m) => m.id) }),
+      body: JSON.stringify({ room: ROOM, ids }),
     });
     check('ack: ok', (await ackRes.json()).ok === true);
 
     const pollRes2 = await fetch(`${BASE}/api/bot/poll?room=${encodeURIComponent(ROOM)}`, { headers: auth });
-    check('poll(재): ack 후 0건', (await pollRes2.json()).messages?.length === 0);
+    check('poll(재): 올바른 room ack 후 0건', (await pollRes2.json()).messages?.length === 0);
 
     const schedRes = await fetch(`${BASE}/api/bot/schedule?room=${encodeURIComponent(ROOM)}`, { headers: auth });
     check('schedule: 곡명 포함 텍스트', (await schedRes.json()).text?.includes('BotSong'));

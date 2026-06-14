@@ -5,17 +5,15 @@
 import { NextResponse } from 'next/server';
 
 import { closeDueVotes } from '@/lib/matching/close';
+import { bearerAuthorized } from '@/lib/api-auth';
 
 // postgres-js 드라이버 사용 → Node 런타임 필수(edge 금지). 정적 최적화 차단.
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const auth = request.headers.get('authorization');
-    if (auth !== `Bearer ${secret}`) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
+  // CRON_SECRET 필수(fail-closed). Vercel Cron 은 설정 시 Bearer 를 자동 전송한다.
+  if (!bearerAuthorized(request, process.env.CRON_SECRET)) {
+    return new NextResponse('Unauthorized', { status: 401 });
   }
 
   const summary = await closeDueVotes(new Date());

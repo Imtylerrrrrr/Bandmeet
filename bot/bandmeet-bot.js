@@ -60,7 +60,8 @@ function poll() {
       sentIds.push(m.id);
     }
     if (sentIds.length > 0) {
-      httpPost(ACK_URL, JSON.stringify({ ids: sentIds })); // 멱등 발송 표시
+      // room 포함 → 서버가 이 단톡방(org) 메시지로 스코프(멱등 발송 표시).
+      httpPost(ACK_URL, JSON.stringify({ room: ROOM_NAME, ids: sentIds }));
     }
   } catch (e) {
     // §8-5: 백엔드 장애를 단톡에 노출하지 않는다 — 침묵.

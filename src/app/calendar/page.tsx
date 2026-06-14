@@ -5,19 +5,11 @@ import { WeekGrid } from '@/components/WeekGrid';
 import { detectConflicts, type Booking } from '@/lib/calendar/conflicts';
 import { loadOrgWeek } from '@/lib/calendar/load';
 import { requireActiveOrg } from '@/lib/org';
-import { addDays, kstDateStr, kstWeekday } from '@/lib/matching/slots';
+import { addDays, fmtSlotRange, kstDateStr, kstWeekday } from '@/lib/matching/slots';
 
-const WD = ['일', '월', '화', '수', '목', '금', '토'];
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-function fmt(b: Booking): string {
-  // slot = KST epoch hour → floor/24 = KST epoch day → 1970-01-01 기준 날짜 복원.
-  const date = addDays('1970-01-01', Math.floor(b.start / 24));
-  const [, m, d] = date.split('-').map(Number);
-  const sh = ((b.start % 24) + 24) % 24;
-  const eh = sh + (b.end - b.start);
-  return `${m}/${d}(${WD[kstWeekday(date)]}) ${sh}:00–${eh}:00`;
-}
+const fmt = (b: Booking): string => fmtSlotRange(b.start, b.end - b.start);
 
 export default async function CalendarPage({
   searchParams,

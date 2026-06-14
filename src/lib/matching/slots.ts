@@ -55,3 +55,30 @@ export function addDays(dateStr: string, n: number): string {
     t.getUTCDate(),
   ).padStart(2, '0')}`;
 }
+
+/** timestamptz + 분 → 정수 hour-slot 구간 [start, end). 점유/예약 인터벌 빌더(단일 출처). */
+export function toInterval(
+  startAt: Date,
+  durationMin: number,
+): { start: number; end: number } {
+  const start = instantToSlot(startAt);
+  return { start, end: start + durationToHours(durationMin) };
+}
+
+const WD = ['일', '월', '화', '수', '목', '금', '토'];
+
+/**
+ * 시작 slot + 지속시간(시간) → 'M/D(요일) HH:00–HH:00' (KST).
+ * 끝이 24시를 넘으면 익일 표기('…–01:00(익일)'). 시각 표기 단일 출처.
+ */
+export function fmtSlotRange(startSlot: number, durationHours: number): string {
+  const date = addDays('1970-01-01', Math.floor(startSlot / 24));
+  const [, m, d] = date.split('-').map(Number);
+  const sh = ((startSlot % 24) + 24) % 24;
+  const ehRaw = sh + durationHours;
+  const ehLabel =
+    ehRaw >= 24
+      ? `${String(ehRaw % 24).padStart(2, '0')}:00(익일)`
+      : `${String(ehRaw).padStart(2, '0')}:00`;
+  return `${m}/${d}(${WD[kstWeekday(date)]}) ${String(sh).padStart(2, '0')}:00–${ehLabel}`;
+}

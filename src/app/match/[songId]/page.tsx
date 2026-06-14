@@ -17,21 +17,19 @@ import {
 import { requireActiveOrg } from '@/lib/org';
 import { recommendSlots } from '@/lib/matching/engine';
 import { loadRecommendInput } from '@/lib/matching/load';
-import { instantToSlot, kstDateStr, kstWeekday, slotToDate } from '@/lib/matching/slots';
+import {
+  durationToHours,
+  fmtSlotRange,
+  instantToSlot,
+  kstDateStr,
+  slotToDate,
+} from '@/lib/matching/slots';
 import { outboxSummon } from '@/lib/messages';
 import { isSongArchived } from '@/lib/archive';
 import { cancelVote, castBallot, createVote, summon } from './actions';
 
-const WD = ['일', '월', '화', '수', '목', '금', '토'];
-
-function fmtSlot(slot: number, durMin: number): string {
-  const date = kstDateStr(slotToDate(slot));
-  const [, m, d] = date.split('-').map(Number);
-  const hour = ((slot % 24) + 24) % 24;
-  const endHour = hour + Math.round(durMin / 60);
-  const wd = WD[kstWeekday(date)];
-  return `${m}/${d}(${wd}) ${String(hour).padStart(2, '0')}:00–${String(endHour).padStart(2, '0')}:00`;
-}
+const fmtSlot = (slot: number, durMin: number): string =>
+  fmtSlotRange(slot, durationToHours(durMin));
 
 export default async function MatchPage({
   params,
@@ -60,7 +58,9 @@ export default async function MatchPage({
     .where(and(eq(rehearsals.songId, songId), eq(rehearsals.status, 'confirmed')))
     .orderBy(asc(rehearsals.startAt));
   const h = await headers();
-  const base = `${h.get('x-forwarded-proto') ?? 'http'}://${h.get('host') ?? 'localhost:3000'}`;
+  const base =
+    process.env.APP_URL ??
+    `${h.get('x-forwarded-proto') ?? 'http'}://${h.get('host') ?? 'localhost:3000'}`;
   const archived = await isSongArchived(songId);
 
   return (
@@ -76,7 +76,7 @@ export default async function MatchPage({
 
         {archived && (
           <p className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
-            🔒 아카이브된 공연입니다. 새 투표·확정은 할 수 없습니다(소집 안내만 가능).
+            🔒 아카이브된 공연입니다. 새 투표·확정·소집은 할 수 없습니다(읽기 전용).
           </p>
         )}
 
@@ -85,7 +85,7 @@ export default async function MatchPage({
             songId={songId}
             songTitle={song.title}
             rows={confirmedRows}
-            isAdmin={isAdmin}
+            isAdmin={isAdmin && !archived}
             link={`${base}/match/${songId}`}
           />
         )}

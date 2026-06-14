@@ -7,12 +7,11 @@ import { and, asc, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { chatBindings, meetings, rehearsals, songs } from '@/lib/db/schema';
 import { fmtWhen } from '@/lib/messages';
+import { bearerAuthorized } from '@/lib/api-auth';
 
 /** Authorization: Bearer <BOT_SECRET> 검증. 미설정이면 봇 비활성(거부). */
 export function botAuthorized(request: Request): boolean {
-  const secret = process.env.BOT_SECRET;
-  if (!secret) return false;
-  return request.headers.get('authorization') === `Bearer ${secret}`;
+  return bearerAuthorized(request, process.env.BOT_SECRET);
 }
 
 /** 단톡방 이름 → org id. 바인딩 없으면 null(봇은 침묵). */
