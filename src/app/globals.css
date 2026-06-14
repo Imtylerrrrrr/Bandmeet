@@ -1,26 +1,62 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* 폰트 토큰(next/font 의 Geist 변수 참조) */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 디자인 토큰 — Geist/Vercel 결 미니멀. 핸드오프 1장 값 그대로. */
+@theme {
+  /* 중립 */
+  --color-canvas: #fafafa; /* 페이지 배경 */
+  --color-surface: #ffffff; /* 카드 */
+  --color-line: #ebebeb; /* 모든 테두리·격자선 (검정 금지) */
+  --color-line-strong: #e0e0e0; /* 강조 테두리 */
+  --color-hover: #f4f4f5; /* hover 배경 */
+  --color-ink: #171717; /* 본문 */
+  --color-mut: #737373; /* 보조 */
+  --color-faint: #a3a3a3; /* 힌트 */
+
+  /* 브랜드 */
+  --color-primary: #5b4be6; /* 주요 버튼·오늘·활성 메뉴 */
+  --color-primary-soft: #eeedfe; /* 인디고 연배경 */
+  --color-primary-ink: #3c3489; /* 인디고 배경 위 텍스트 */
+
+  /* 시맨틱 — 가능/되면/방중복/회의 */
+  --color-ok-paint: #86efac;
+  --color-ok-bg: #dcfce7;
+  --color-ok-text: #15803d;
+  --color-warn-paint: #fcd34d;
+  --color-warn-bg: #fef3c7;
+  --color-warn-text: #b45309;
+  --color-danger-bg: #fee2e2;
+  --color-danger-text: #b91c1c;
+  --color-meeting-bg: #f4f4f5;
+  --color-meeting-text: #52525b;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  /* Tailwind v4 는 border 기본색이 currentColor(=검정) → 전부 hairline 으로. */
+  *,
+  ::after,
+  ::before {
+    border-color: var(--color-line);
+  }
+
+  html {
+    background: var(--color-canvas);
+  }
+
+  body {
+    color: var(--color-ink);
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+      sans-serif;
+  }
+
+  /* 키보드 포커스 링 일관화 */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--color-primary);
+  }
 }
