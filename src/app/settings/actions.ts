@@ -10,7 +10,7 @@ import { requireOrgAdmin } from '@/lib/org';
 /** 동아리 이름 변경(운영진). 헤더·전 화면에 반영. */
 export async function renameOrg(formData: FormData) {
   const orgId = String(formData.get('orgId') ?? '');
-  const name = String(formData.get('name') ?? '').trim();
+  const name = String(formData.get('name') ?? '').trim().slice(0, 40);
   await requireOrgAdmin(orgId);
   if (!name) throw new Error('동아리 이름을 입력하세요.');
   await db.update(orgs).set({ name }).where(eq(orgs.id, orgId));

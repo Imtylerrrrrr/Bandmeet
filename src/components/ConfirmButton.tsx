@@ -39,16 +39,18 @@ export function ConfirmButton({
   const confirm = () => {
     const form = formRef.current;
     setOpen(false);
+    // 서버 액션이 리다이렉트하면 effect cleanup이 못 돌 수 있어 직접 복원(스크롤락 누수 방지).
+    document.body.style.overflow = '';
     form?.requestSubmit();
   };
 
   return (
     <>
       <Button
-        type="button"
         variant={variant}
         size={size}
         {...rest}
+        type="button"
         onClick={(e) => {
           formRef.current = e.currentTarget.form;
           setOpen(true);

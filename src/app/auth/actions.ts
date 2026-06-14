@@ -22,7 +22,7 @@ export async function signInWithKakao() {
 }
 
 /**
- * 게스트로 시작(카카오 없이 이름만). Supabase 익명 세션 + 프로필 이름 설정 → 온보딩.
+ * 게스트로 시작(카카오 없이 이름만). Supabase 익명 세션 + 프로필 이름 설정 후 홈('/')으로(미가입이면 홈에서 온보딩으로).
  * Supabase Authentication 에서 'Anonymous sign-ins' 가 켜져 있어야 동작.
  */
 export async function signInAsGuest(formData: FormData) {
