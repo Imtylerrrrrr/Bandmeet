@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import { IconMusic, IconLogout } from '@tabler/icons-react';
 
 import { signOut } from '@/app/auth/actions';
 import { switchOrg } from '@/lib/org-actions';
 import type { OrgMembership } from '@/lib/org';
+import { NavLinks } from './NavLinks';
 
 const ROLE_LABEL: Record<string, string> = { admin: '운영진', member: '부원' };
 
@@ -14,68 +16,59 @@ export function AppHeader({
   all: OrgMembership[];
 }) {
   return (
-    <header className="border-b">
-      <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 p-4">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="font-bold">
-            Bandmeet
+    <header className="sticky top-0 z-30 border-b bg-surface/85 backdrop-blur">
+      <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-2.5">
+        <div className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-white">
+              <IconMusic size={16} stroke={2} />
+            </span>
+            <span className="text-[15px] font-semibold tracking-tight">Bandmeet</span>
           </Link>
-          <span className="text-sm text-gray-600">{active.orgName}</span>
-          <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
+          <span className="hidden text-sm text-mut sm:inline">{active.orgName}</span>
+          <span className="rounded-md bg-hover px-1.5 py-0.5 text-[11px] font-medium text-mut">
             {ROLE_LABEL[active.role] ?? active.role}
           </span>
         </div>
 
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/" className="hover:underline">
-            홈
-          </Link>
-          <Link href="/calendar" className="hover:underline">
-            캘린더
-          </Link>
-          <Link href="/perf" className="hover:underline">
-            공연
-          </Link>
-          <Link href="/availability" className="hover:underline">
-            가용성
-          </Link>
-          <Link href="/members" className="hover:underline">
-            멤버
-          </Link>
-          <Link href="/notifications" className="hover:underline">
-            알림
-          </Link>
-          {active.role === 'admin' && (
-            <Link href="/settings" className="hover:underline">
-              설정
-            </Link>
-          )}
+        <div className="flex flex-wrap items-center gap-2">
+          <NavLinks isAdmin={active.role === 'admin'} />
 
-          {all.length > 1 && (
-            <form action={switchOrg} className="flex items-center gap-1">
-              <select
-                name="orgId"
-                defaultValue={active.orgId}
-                className="rounded border px-1 py-0.5 text-xs"
+          <div className="flex items-center gap-1.5">
+            {all.length > 1 && (
+              <form action={switchOrg} className="flex items-center gap-1">
+                <select
+                  name="orgId"
+                  defaultValue={active.orgId}
+                  className="rounded-lg border bg-surface px-2 py-1.5 text-[13px] text-mut transition-colors duration-150 hover:border-line-strong"
+                >
+                  {all.map((o) => (
+                    <option key={o.orgId} value={o.orgId}>
+                      {o.orgName}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  className="rounded-lg px-2 py-1.5 text-[13px] font-medium text-primary transition-colors duration-150 hover:bg-primary-soft"
+                >
+                  전환
+                </button>
+              </form>
+            )}
+
+            <form action={signOut}>
+              <button
+                type="submit"
+                title="로그아웃"
+                aria-label="로그아웃"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-faint transition-colors duration-150 hover:bg-hover hover:text-ink"
               >
-                {all.map((o) => (
-                  <option key={o.orgId} value={o.orgId}>
-                    {o.orgName}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" className="text-xs text-blue-600 hover:underline">
-                전환
+                <IconLogout size={17} stroke={1.5} />
               </button>
             </form>
-          )}
-
-          <form action={signOut}>
-            <button type="submit" className="text-gray-500 hover:underline">
-              로그아웃
-            </button>
-          </form>
-        </nav>
+          </div>
+        </div>
       </div>
     </header>
   );
