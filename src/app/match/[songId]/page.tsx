@@ -226,7 +226,7 @@ async function VoteSection({
       </form>
 
       <p className="text-xs text-gray-400">
-        마감 시 자동 확정(최다 득표 → 빈 슬롯)은 7단계 Cron에서 처리됩니다.
+        마감 시각이 지나면 매시 자동 집계되어 최다 득표 빈 슬롯으로 확정됩니다.
       </p>
     </section>
   );
