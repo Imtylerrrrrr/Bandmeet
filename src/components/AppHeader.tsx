@@ -30,6 +30,9 @@ export function AppHeader({
           <Link href="/" className="hover:underline">
             홈
           </Link>
+          <Link href="/calendar" className="hover:underline">
+            캘린더
+          </Link>
           <Link href="/perf" className="hover:underline">
             공연
           </Link>
