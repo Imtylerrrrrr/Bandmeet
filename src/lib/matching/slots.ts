@@ -56,6 +56,43 @@ export function addDays(dateStr: string, n: number): string {
   ).padStart(2, '0')}`;
 }
 
+/**
+ * 'YYYY-MM-DD' 가 형식 + 달력상 유효한지(월 1~12, 일 ≤ 그 달 말일).
+ * Date.UTC 는 범위 밖 값을 조용히 롤오버하므로(2026-13-45 → 2027-02-15) 입력 검증에 필요.
+ */
+export function isValidDate(dateStr: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  const [y, m, d] = dateStr.split('-').map(Number);
+  if (m < 1 || m > 12 || d < 1) return false;
+  const dim = new Date(Date.UTC(y, m, 0)).getUTCDate(); // 그 달 말일
+  return d <= dim;
+}
+
+/** 'YYYY-MM-DD' 에 n개월 더한 날짜(일자는 대상 월 말일로 클램프: 1/31 +1달 = 2/28). */
+export function addMonths(dateStr: string, n: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const total = y * 12 + (m - 1) + n;
+  const ny = Math.floor(total / 12);
+  const nm = ((total % 12) + 12) % 12; // 0-based 월
+  const dim = new Date(Date.UTC(ny, nm + 1, 0)).getUTCDate(); // 대상 월 일수
+  const nd = Math.min(d, dim);
+  return `${ny}-${String(nm + 1).padStart(2, '0')}-${String(nd).padStart(2, '0')}`;
+}
+
+/**
+ * 'YYYY-MM-DD' 가 속한 달의 월간 격자 날짜들(일요일 시작, 길이=35 또는 42).
+ * 앞뒤 칸은 이웃 달 날짜로 채워진다(달력 칸 채우기용).
+ */
+export function monthGridDays(dateStr: string): string[] {
+  const [y, m] = dateStr.split('-').map(Number);
+  const first = `${y}-${String(m).padStart(2, '0')}-01`;
+  const lead = kstWeekday(first); // 0=일 ~ 6=토 (앞 빈칸 수)
+  const dim = new Date(Date.UTC(y, m, 0)).getUTCDate(); // 이 달 일수
+  const cells = Math.max(35, Math.ceil((lead + dim) / 7) * 7); // 35 또는 42 (일요일 시작 평년 2월도 최소 5주)
+  const gridStart = addDays(first, -lead);
+  return Array.from({ length: cells }, (_, i) => addDays(gridStart, i));
+}
+
 /** timestamptz + 분 → 정수 hour-slot 구간 [start, end). 점유/예약 인터벌 빌더(단일 출처). */
 export function toInterval(
   startAt: Date,
