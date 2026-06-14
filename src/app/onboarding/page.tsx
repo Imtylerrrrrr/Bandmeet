@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 
 import { requireUser } from '@/lib/auth';
 import { getMyOrgs } from '@/lib/org';
+import { Logo } from '@/components/Logo';
 import { createOrg, joinOrg } from './actions';
 
 export default async function OnboardingPage() {
@@ -10,41 +11,42 @@ export default async function OnboardingPage() {
   if ((await getMyOrgs(user.id)).length > 0) redirect('/');
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 p-8">
-      <div>
-        <h1 className="text-xl font-bold">시작하기</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          동아리를 새로 만들거나, 초대 코드로 가입하세요.
-        </p>
+    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 bg-canvas p-8">
+      <div className="flex items-center gap-3">
+        <Logo size={36} />
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">시작하기</h1>
+          <p className="mt-0.5 text-sm text-mut">동아리를 새로 만들거나, 초대 코드로 가입하세요.</p>
+        </div>
       </div>
 
-      <form action={createOrg} className="flex flex-col gap-3 rounded-lg border p-5">
-        <h2 className="text-sm font-semibold">동아리 만들기 (운영진)</h2>
+      <form action={createOrg} className="flex flex-col gap-3 rounded-xl border bg-surface p-5">
+        <h2 className="text-[15px] font-semibold">동아리 만들기 (운영진)</h2>
         <input
           name="name"
           required
           placeholder="동아리 이름"
-          className="rounded-md border px-3 py-2 text-sm"
+          className="rounded-lg border bg-surface px-3 py-2 text-sm transition-colors duration-150 hover:border-line-strong"
         />
         <button
           type="submit"
-          className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity duration-150 hover:opacity-90"
         >
           만들기
         </button>
       </form>
 
-      <form action={joinOrg} className="flex flex-col gap-3 rounded-lg border p-5">
-        <h2 className="text-sm font-semibold">초대 코드로 가입 (부원)</h2>
+      <form action={joinOrg} className="flex flex-col gap-3 rounded-xl border bg-surface p-5">
+        <h2 className="text-[15px] font-semibold">초대 코드로 가입 (부원)</h2>
         <input
           name="code"
           required
           placeholder="초대 코드 (예: a1b2c3d4)"
-          className="rounded-md border px-3 py-2 text-sm"
+          className="rounded-lg border bg-surface px-3 py-2 font-mono text-sm tracking-wider transition-colors duration-150 hover:border-line-strong"
         />
         <button
           type="submit"
-          className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-gray-50"
+          className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors duration-150 hover:bg-hover"
         >
           가입하기
         </button>

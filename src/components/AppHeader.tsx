@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { IconMusic, IconLogout } from '@tabler/icons-react';
+import { IconLogout } from '@tabler/icons-react';
 
 import { signOut } from '@/app/auth/actions';
 import { switchOrg } from '@/lib/org-actions';
 import type { OrgMembership } from '@/lib/org';
 import { NavLinks } from './NavLinks';
+import { Logo } from './Logo';
 
 const ROLE_LABEL: Record<string, string> = { admin: '운영진', member: '부원' };
 
@@ -20,9 +21,7 @@ export function AppHeader({
       <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-2.5">
         <div className="flex items-center gap-2.5">
           <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-white">
-              <IconMusic size={16} stroke={2} />
-            </span>
+            <Logo size={26} />
             <span className="text-[15px] font-semibold tracking-tight">Bandmeet</span>
           </Link>
           <span className="hidden text-sm text-mut sm:inline">{active.orgName}</span>
