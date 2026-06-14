@@ -27,7 +27,14 @@ import {
 } from '@/lib/matching/slots';
 import { outboxSummon } from '@/lib/messages';
 import { isSongArchived } from '@/lib/archive';
-import { cancelVote, castBallot, confirmVote, createVote, summon } from './actions';
+import {
+  cancelVote,
+  castBallot,
+  confirmVote,
+  confirmVoteOption,
+  createVote,
+  summon,
+} from './actions';
 
 const fmtSlot = (slot: number, durMin: number): string =>
   fmtSlotRange(slot, durationToHours(durMin));
@@ -277,9 +284,9 @@ async function VoteSection({
                 type="submit"
                 variant="primary"
                 size="sm"
-                title="지금까지의 표로 즉시 확정합니다"
+                title="현재 득표 1위 시간으로 즉시 확정합니다"
               >
-                지금 확정
+                표대로 확정
               </Button>
             </form>
             <form action={cancelVote}>
@@ -296,7 +303,14 @@ async function VoteSection({
       <form action={castBallot} className="flex flex-col gap-2">
         <input type="hidden" name="songId" value={songId} />
         <input type="hidden" name="voteId" value={vote.id} />
+        <input type="hidden" name="rehearsalId" value={rehearsalId} />
         <div className="text-sm font-semibold">내 순위 투표 (1·2·3순위)</div>
+        {isAdmin && (
+          <p className="text-xs text-mut">
+            운영진은 각 후보의 <b className="font-medium text-ink">이 시간으로 확정</b>으로
+            원하는 시간을 바로 정할 수 있어요.
+          </p>
+        )}
         <ul className="flex flex-col gap-2">
           {options.map((o) => {
             const slot = instantToSlot(o.slotStart);
@@ -309,18 +323,33 @@ async function VoteSection({
                 <span className="text-xs text-faint">
                   1순위 {tally(o.id, 1)} · 2순위 {tally(o.id, 2)} · 3순위 {tally(o.id, 3)}
                 </span>
-                {canVote && (
-                  <select
-                    name={`rank_${o.id}`}
-                    defaultValue={String(myRank.get(o.id) ?? '')}
-                    className="ml-auto rounded border px-2 py-1 text-sm"
-                  >
-                    <option value="">—</option>
-                    <option value="1">1순위</option>
-                    <option value="2">2순위</option>
-                    <option value="3">3순위</option>
-                  </select>
-                )}
+                <div className="ml-auto flex items-center gap-2">
+                  {isAdmin && (
+                    <Button
+                      type="submit"
+                      formAction={confirmVoteOption}
+                      name="optionId"
+                      value={o.id}
+                      variant="secondary"
+                      size="sm"
+                      title="이 시간으로 합주를 확정합니다"
+                    >
+                      이 시간으로 확정
+                    </Button>
+                  )}
+                  {canVote && (
+                    <select
+                      name={`rank_${o.id}`}
+                      defaultValue={String(myRank.get(o.id) ?? '')}
+                      className="rounded-md border bg-surface px-2 py-1 text-sm"
+                    >
+                      <option value="">—</option>
+                      <option value="1">1순위</option>
+                      <option value="2">2순위</option>
+                      <option value="3">3순위</option>
+                    </select>
+                  )}
+                </div>
               </li>
             );
           })}

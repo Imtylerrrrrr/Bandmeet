@@ -95,6 +95,37 @@ const memberIdsOfTx = (tx: Tx) => async (songId: string) =>
       .where(eq(songMembers.songId, songId))
   ).map((r) => r.userId);
 
+/** 한 합주를 특정 옵션 슬롯으로 확정 + 알림(자동 마감·수동 선택 공통). */
+async function confirmToOption(
+  tx: Tx,
+  vote: { rehearsalId: string; orgId: string; songId: string; songTitle: string },
+  opt: { slotStart: Date; durationMin: number },
+): Promise<void> {
+  await tx
+    .update(rehearsals)
+    .set({
+      startAt: opt.slotStart,
+      durationMin: opt.durationMin,
+      status: 'confirmed',
+    })
+    .where(eq(rehearsals.id, vote.rehearsalId));
+
+  const members = await memberIdsOfTx(tx)(vote.songId);
+  await enqueueOutbox(
+    tx,
+    vote.orgId,
+    outboxConfirmed(vote.songTitle, opt.slotStart, opt.durationMin),
+    `confirmed:${vote.rehearsalId}`,
+  );
+  await notifyUsers(
+    tx,
+    vote.orgId,
+    members,
+    notifyConfirmed(vote.songTitle, opt.slotStart, opt.durationMin),
+    `/match/${vote.songId}`,
+  );
+}
+
 /**
  * 한 합주의 투표 1건을 정산(마감 cron 과 임의확정이 공유).
  * 옵션 집계 → 빈 슬롯 중 최상위 → confirmed(+알림) / 빈 슬롯 없으면 conflict(+재투표 알림).
@@ -158,31 +189,7 @@ async function settleVote(
 
   // 원래 옵션의 정확한 timestamp/duration 으로 확정(slot 반올림값 말고).
   const winOpt = options.find((o) => o.id === winner.id)!;
-  await tx
-    .update(rehearsals)
-    .set({
-      startAt: winOpt.slotStart,
-      durationMin: winOpt.durationMin,
-      status: 'confirmed',
-    })
-    .where(eq(rehearsals.id, vote.rehearsalId));
-
-  // 단톡 아웃박스 + 곡 담당자 인앱 알림 (확정과 원자적).
-  const members = await memberIdsOf(vote.songId);
-  await enqueueOutbox(
-    tx,
-    vote.orgId,
-    outboxConfirmed(vote.songTitle, winOpt.slotStart, winOpt.durationMin),
-    `confirmed:${vote.rehearsalId}`,
-  );
-  await notifyUsers(
-    tx,
-    vote.orgId,
-    members,
-    notifyConfirmed(vote.songTitle, winOpt.slotStart, winOpt.durationMin),
-    `/match/${vote.songId}`,
-  );
-
+  await confirmToOption(tx, vote, winOpt);
   return { outcome: 'confirmed', optionId: winner.id };
 }
 
@@ -272,5 +279,68 @@ export async function confirmVoteNow(
 
     const res = await settleVote(tx, vote, memberIdsOfTx(tx));
     return { outcome: res.outcome };
+  });
+}
+
+/**
+ * 운영진이 후보 슬롯 중 원하는 시간을 직접 골라 확정(표 무시).
+ * 고른 슬롯이 이미 점유(방·미팅 겹침)면 'occupied' → 방 1개 불변식 보존(다른 시간 선택 유도).
+ * 반환: notfound(진행중 투표 없음) · invalid(이 투표의 옵션 아님) · occupied · confirmed.
+ */
+export async function confirmVoteToOption(
+  rehearsalId: string,
+  orgId: string,
+  optionId: string,
+): Promise<{ outcome: 'confirmed' | 'occupied' | 'notfound' | 'invalid' }> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(${CLOSE_LOCK_KEY})`);
+
+    const [vote] = await tx
+      .select({
+        voteId: rehearsalVotes.id,
+        rehearsalId: rehearsals.id,
+        orgId: rehearsals.orgId,
+        songId: rehearsals.songId,
+        songTitle: songs.title,
+      })
+      .from(rehearsalVotes)
+      .innerJoin(rehearsals, eq(rehearsalVotes.rehearsalId, rehearsals.id))
+      .innerJoin(songs, eq(rehearsals.songId, songs.id))
+      .where(
+        and(
+          eq(rehearsals.id, rehearsalId),
+          eq(rehearsals.orgId, orgId),
+          eq(rehearsals.status, 'voting'),
+        ),
+      )
+      .limit(1);
+    if (!vote) return { outcome: 'notfound' as const };
+
+    // 고른 옵션이 이 투표 소속인지 확인.
+    const [opt] = await tx
+      .select({
+        slotStart: rehearsalVoteOptions.slotStart,
+        durationMin: rehearsalVoteOptions.durationMin,
+      })
+      .from(rehearsalVoteOptions)
+      .where(
+        and(
+          eq(rehearsalVoteOptions.id, optionId),
+          eq(rehearsalVoteOptions.voteId, vote.voteId),
+        ),
+      )
+      .limit(1);
+    if (!opt) return { outcome: 'invalid' as const };
+
+    // 점유 검사(방/미팅 겹침) — 겹치면 거부.
+    const interval = toInterval(opt.slotStart, opt.durationMin);
+    const occupied = await loadOccupied(tx, orgId);
+    const clash = occupied.some(
+      (o) => interval.start < o.end && o.start < interval.end,
+    );
+    if (clash) return { outcome: 'occupied' as const };
+
+    await confirmToOption(tx, vote, opt);
+    return { outcome: 'confirmed' as const };
   });
 }

@@ -13,7 +13,7 @@ import {
   songs,
 } from '@/lib/db/schema';
 import { requireMembership, requireOrgAdmin } from '@/lib/org';
-import { confirmVoteNow } from '@/lib/matching/close';
+import { confirmVoteNow, confirmVoteToOption } from '@/lib/matching/close';
 import { slotToDate } from '@/lib/matching/slots';
 import { enqueueOutbox } from '@/lib/outbox';
 import { outboxSummon } from '@/lib/messages';
@@ -177,6 +177,26 @@ export async function confirmVote(formData: FormData) {
 
   const res = await confirmVoteNow(rehearsalId, orgId);
   if (res.outcome === 'notfound') throw new Error('진행 중인 투표가 아닙니다.');
+  revalidatePath(`/match/${songId}`);
+}
+
+/**
+ * 운영진이 고른 후보 슬롯으로 직접 확정(표 무시, 임의 날짜 선택).
+ * 점유된 시간이면 거부 메시지.
+ */
+export async function confirmVoteOption(formData: FormData) {
+  const songId = String(formData.get('songId') ?? '');
+  const rehearsalId = String(formData.get('rehearsalId') ?? '');
+  const optionId = String(formData.get('optionId') ?? '');
+  const orgId = await songOrg(songId);
+  await requireOrgAdmin(orgId);
+  await assertSongActive(songId);
+
+  const res = await confirmVoteToOption(rehearsalId, orgId, optionId);
+  if (res.outcome === 'notfound') throw new Error('진행 중인 투표가 아닙니다.');
+  if (res.outcome === 'invalid') throw new Error('이 투표의 후보가 아닙니다.');
+  if (res.outcome === 'occupied')
+    throw new Error('그 시간엔 이미 다른 합주·회의가 잡혀 있어요. 다른 시간을 고르세요.');
   revalidatePath(`/match/${songId}`);
 }
 
