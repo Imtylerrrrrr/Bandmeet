@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { and, asc, eq, inArray } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
+import { CopyButton } from '@/components/CopyButton';
 import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
 import {
@@ -16,7 +18,8 @@ import { requireActiveOrg } from '@/lib/org';
 import { recommendSlots } from '@/lib/matching/engine';
 import { loadRecommendInput } from '@/lib/matching/load';
 import { instantToSlot, kstDateStr, kstWeekday, slotToDate } from '@/lib/matching/slots';
-import { cancelVote, castBallot, createVote } from './actions';
+import { outboxSummon } from '@/lib/messages';
+import { cancelVote, castBallot, createVote, summon } from './actions';
 
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -49,6 +52,15 @@ export default async function MatchPage({
     .where(and(eq(rehearsals.songId, songId), eq(rehearsals.status, 'voting')))
     .limit(1);
 
+  // 확정된 합주(소집 대상).
+  const confirmedRows = await db
+    .select({ id: rehearsals.id, startAt: rehearsals.startAt, durationMin: rehearsals.durationMin })
+    .from(rehearsals)
+    .where(and(eq(rehearsals.songId, songId), eq(rehearsals.status, 'confirmed')))
+    .orderBy(asc(rehearsals.startAt));
+  const h = await headers();
+  const base = `${h.get('x-forwarded-proto') ?? 'http'}://${h.get('host') ?? 'localhost:3000'}`;
+
   return (
     <>
       <AppHeader active={active} all={all} />
@@ -60,6 +72,16 @@ export default async function MatchPage({
           <h1 className="mt-1 text-lg font-bold">합주 매칭 · {song.title}</h1>
         </div>
 
+        {confirmedRows.length > 0 && (
+          <ConfirmedSection
+            songId={songId}
+            songTitle={song.title}
+            rows={confirmedRows}
+            isAdmin={isAdmin}
+            link={`${base}/match/${songId}`}
+          />
+        )}
+
         {reh ? (
           <VoteSection songId={songId} rehearsalId={reh.id} userId={user.id} isAdmin={isAdmin} />
         ) : (
@@ -67,6 +89,54 @@ export default async function MatchPage({
         )}
       </main>
     </>
+  );
+}
+
+function ConfirmedSection({
+  songId,
+  songTitle,
+  rows,
+  isAdmin,
+  link,
+}: {
+  songId: string;
+  songTitle: string;
+  rows: { id: string; startAt: Date; durationMin: number }[];
+  isAdmin: boolean;
+  link: string;
+}) {
+  return (
+    <section className="flex flex-col gap-3">
+      <h2 className="text-sm font-semibold">확정된 합주</h2>
+      {rows.map((r) => {
+        const msg = outboxSummon(songTitle, r.startAt, r.durationMin, link);
+        return (
+          <div
+            key={r.id}
+            className="flex flex-col gap-2 rounded-lg border border-green-200 bg-green-50 p-3"
+          >
+            <span className="text-sm font-medium text-green-800">
+              {fmtSlot(instantToSlot(r.startAt), r.durationMin)}
+            </span>
+            <pre className="whitespace-pre-wrap rounded border bg-white p-2 text-xs text-gray-700">
+              {msg}
+            </pre>
+            <div className="flex items-center gap-2">
+              <CopyButton text={msg} />
+              {isAdmin && (
+                <form action={summon}>
+                  <input type="hidden" name="songId" value={songId} />
+                  <input type="hidden" name="rehearsalId" value={r.id} />
+                  <button className="rounded bg-black px-3 py-1 text-xs font-medium text-white hover:opacity-90">
+                    단톡 소집 보내기
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </section>
   );
 }
 

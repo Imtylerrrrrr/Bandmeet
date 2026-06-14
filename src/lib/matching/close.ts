@@ -21,7 +21,16 @@ import {
   rehearsalVoteOptions,
   rehearsalVotes,
   rehearsals,
+  songMembers,
+  songs,
 } from '@/lib/db/schema';
+import { enqueueOutbox, notifyUsers } from '@/lib/outbox';
+import {
+  notifyConfirmed,
+  notifyConflict,
+  outboxConfirmed,
+  outboxConflict,
+} from '@/lib/messages';
 import { durationToHours, instantToSlot } from './slots';
 import { type Interval, pickWinner, tallyVotes } from './tally';
 
@@ -66,6 +75,22 @@ async function loadOccupied(tx: Tx, orgId: string): Promise<Interval[]> {
   return occupied;
 }
 
+/** 충돌(빈 슬롯 없음/옵션 없음) 시 아웃박스 + 인앱 알림 (확정 분기와 대칭). */
+async function notifyConflictOf(
+  tx: Tx,
+  vote: { orgId: string; songId: string; songTitle: string; rehearsalId: string },
+  memberIdsOf: (songId: string) => Promise<string[]>,
+): Promise<void> {
+  const members = await memberIdsOf(vote.songId);
+  await enqueueOutbox(
+    tx,
+    vote.orgId,
+    outboxConflict(vote.songTitle),
+    `conflict:${vote.rehearsalId}`,
+  );
+  await notifyUsers(tx, vote.orgId, members, notifyConflict(vote.songTitle), `/match/${vote.songId}`);
+}
+
 /** voteCloseAt ≤ now 이고 합주가 'voting' 인 투표를 모두 마감 처리. */
 export async function closeDueVotes(now: Date): Promise<CloseSummary> {
   return db.transaction(async (tx) => {
@@ -77,10 +102,22 @@ export async function closeDueVotes(now: Date): Promise<CloseSummary> {
         voteId: rehearsalVotes.id,
         rehearsalId: rehearsals.id,
         orgId: rehearsals.orgId,
+        songId: rehearsals.songId,
+        songTitle: songs.title,
       })
       .from(rehearsalVotes)
       .innerJoin(rehearsals, eq(rehearsalVotes.rehearsalId, rehearsals.id))
+      .innerJoin(songs, eq(rehearsals.songId, songs.id))
       .where(and(lte(rehearsalVotes.voteCloseAt, now), eq(rehearsals.status, 'voting')));
+
+    // 곡 담당자(알림 수신자) 조회.
+    const memberIdsOf = async (songId: string) =>
+      (
+        await tx
+          .select({ userId: songMembers.userId })
+          .from(songMembers)
+          .where(eq(songMembers.songId, songId))
+      ).map((r) => r.userId);
 
     const summary: CloseSummary = {
       processed: 0,
@@ -107,6 +144,7 @@ export async function closeDueVotes(now: Date): Promise<CloseSummary> {
           .update(rehearsals)
           .set({ status: 'conflict' })
           .where(eq(rehearsals.id, vote.rehearsalId));
+        await notifyConflictOf(tx, vote, memberIdsOf);
         summary.conflicts++;
         summary.details.push({ rehearsalId: vote.rehearsalId, outcome: 'conflict' });
         continue;
@@ -139,6 +177,7 @@ export async function closeDueVotes(now: Date): Promise<CloseSummary> {
           .update(rehearsals)
           .set({ status: 'conflict' })
           .where(eq(rehearsals.id, vote.rehearsalId));
+        await notifyConflictOf(tx, vote, memberIdsOf);
         summary.conflicts++;
         summary.details.push({ rehearsalId: vote.rehearsalId, outcome: 'conflict' });
         continue;
@@ -154,6 +193,23 @@ export async function closeDueVotes(now: Date): Promise<CloseSummary> {
           status: 'confirmed',
         })
         .where(eq(rehearsals.id, vote.rehearsalId));
+
+      // 단톡 아웃박스 + 곡 담당자 인앱 알림 (확정과 원자적).
+      const members = await memberIdsOf(vote.songId);
+      await enqueueOutbox(
+        tx,
+        vote.orgId,
+        outboxConfirmed(vote.songTitle, winOpt.slotStart, winOpt.durationMin),
+        `confirmed:${vote.rehearsalId}`,
+      );
+      await notifyUsers(
+        tx,
+        vote.orgId,
+        members,
+        notifyConfirmed(vote.songTitle, winOpt.slotStart, winOpt.durationMin),
+        `/match/${vote.songId}`,
+      );
+
       summary.confirmed++;
       summary.details.push({
         rehearsalId: vote.rehearsalId,

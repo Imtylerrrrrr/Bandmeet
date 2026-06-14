@@ -10,10 +10,13 @@ import {
   performances,
   teams,
   songs,
+  songMembers,
   rehearsals,
   rehearsalVotes,
   rehearsalVoteOptions,
   rehearsalVoteBallots,
+  outbox,
+  notifications,
 } from '@/lib/db/schema';
 import { closeDueVotes } from '@/lib/matching/close';
 import { dateHourToSlot, slotToDate } from '@/lib/matching/slots';
@@ -118,6 +121,7 @@ async function main() {
   const [a1, b1] = v1.optRows;
   await ballot(b1.id, u1, 1); // optB 1순위 = 3점
   await ballot(a1.id, u1, 2); // optA 2순위 = 2점 (같은 유저, 다른 옵션)
+  await db.insert(songMembers).values({ songId: s1.songId, userId: u1 }); // 알림 수신자
 
   // ── S2 cascade: optA 최다지만 14시 점유 → optB(16시) ──
   const s2 = await makeOrg();
@@ -206,6 +210,18 @@ async function main() {
   check('processed=6 (S1·S2·S3·S4 + S6 둘; S5 미래 제외)', summary.processed === 6);
   check('confirmed=5', summary.confirmed === 5);
   check('conflicts=1', summary.conflicts === 1);
+
+  // ── 9단계: 아웃박스 + 인앱 알림 부수효과 ──
+  const ob1 = await db.select().from(outbox).where(eq(outbox.orgId, s1.orgId));
+  check('S1 확정: 아웃박스 1건 적재', ob1.length === 1);
+  check('S1 확정: dedupeKey=confirmed:<rehId>', ob1[0]?.dedupeKey === `confirmed:${v1.rehId}`);
+  check('S1 확정: 아웃박스 미발송(sentAt null)', ob1[0]?.sentAt === null);
+  const nt1 = await db.select().from(notifications).where(eq(notifications.orgId, s1.orgId));
+  check('S1 확정: 곡 담당자(u1) 인앱 알림 1건', nt1.length === 1 && nt1[0].userId === u1);
+  check('S1 확정: 알림 링크=/match/<songId>', nt1[0]?.link === `/match/${s1.songId}`);
+
+  const ob3 = await db.select().from(outbox).where(eq(outbox.orgId, s3.orgId));
+  check('S3 충돌: 아웃박스 재투표 메시지 적재', ob3.length === 1 && ob3[0].dedupeKey === `conflict:${v3.rehId}`);
 }
 
 async function cleanup() {

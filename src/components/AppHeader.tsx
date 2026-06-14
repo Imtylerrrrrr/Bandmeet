@@ -42,6 +42,9 @@ export function AppHeader({
           <Link href="/members" className="hover:underline">
             멤버
           </Link>
+          <Link href="/notifications" className="hover:underline">
+            알림
+          </Link>
 
           {all.length > 1 && (
             <form action={switchOrg} className="flex items-center gap-1">

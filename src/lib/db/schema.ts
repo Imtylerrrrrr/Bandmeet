@@ -224,3 +224,32 @@ export const meetings = pgTable('meetings', {
   startAt: timestamp('start_at', { withTimezone: true }).notNull(),
   durationMin: integer('duration_min').notNull(),
 });
+
+// ── 알림 / 아웃박스 ──────────────────────────────────────────────
+// 아웃바운드 알림 큐(멱등). 봇이 polling → 단톡 게시 후 ack → sent_at 표시(매뉴얼 §8-3).
+export const outbox = pgTable('outbox', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: uuid('org_id')
+    .notNull()
+    .references(() => orgs.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
+  // 같은 이벤트 중복 적재 방지(예: 'confirmed:<rehId>'). null 다수 허용(소집 등).
+  dedupeKey: text('dedupe_key').unique(),
+  sentAt: timestamp('sent_at', { withTimezone: true }), // null = 대기
+  createdAt: createdAt(),
+});
+
+// 인앱 알림(수신자별).
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: uuid('org_id')
+    .notNull()
+    .references(() => orgs.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => profiles.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
+  link: text('link'), // 딥링크 (예: /match/<songId>)
+  readAt: timestamp('read_at', { withTimezone: true }),
+  createdAt: createdAt(),
+});

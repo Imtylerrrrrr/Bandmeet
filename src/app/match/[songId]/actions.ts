@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 import { and, eq, inArray } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
@@ -13,6 +14,8 @@ import {
 } from '@/lib/db/schema';
 import { requireMembership, requireOrgAdmin } from '@/lib/org';
 import { slotToDate } from '@/lib/matching/slots';
+import { enqueueOutbox } from '@/lib/outbox';
+import { outboxSummon } from '@/lib/messages';
 
 async function songOrg(songId: string) {
   const [s] = await db
@@ -119,6 +122,38 @@ export async function castBallot(formData: FormData) {
     if (ballots.length) await tx.insert(rehearsalVoteBallots).values(ballots);
   });
 
+  revalidatePath(`/match/${songId}`);
+}
+
+/**
+ * 소집 메시지 전송(운영진) — 확정 합주를 단톡 아웃박스에 적재(봇이 게시).
+ * 절대 딥링크 포함. 봇 미설정이어도 아웃박스에 쌓이고, 화면에서 복붙도 가능.
+ */
+export async function summon(formData: FormData) {
+  const songId = String(formData.get('songId') ?? '');
+  const rehearsalId = String(formData.get('rehearsalId') ?? '');
+  const orgId = await songOrg(songId);
+  await requireOrgAdmin(orgId);
+
+  const [reh] = await db
+    .select({
+      startAt: rehearsals.startAt,
+      durationMin: rehearsals.durationMin,
+      status: rehearsals.status,
+    })
+    .from(rehearsals)
+    .where(and(eq(rehearsals.id, rehearsalId), eq(rehearsals.orgId, orgId)));
+  if (!reh || reh.status !== 'confirmed') throw new Error('확정된 합주가 아닙니다.');
+  const [song] = await db.select({ title: songs.title }).from(songs).where(eq(songs.id, songId));
+
+  const h = await headers();
+  const proto = h.get('x-forwarded-proto') ?? 'http';
+  const host = h.get('host') ?? 'localhost:3000';
+  const link = `${proto}://${host}/match/${songId}`;
+
+  await db.transaction(async (tx) => {
+    await enqueueOutbox(tx, orgId, outboxSummon(song.title, reh.startAt, reh.durationMin, link));
+  });
   revalidatePath(`/match/${songId}`);
 }
 
