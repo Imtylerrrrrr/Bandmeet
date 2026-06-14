@@ -5,6 +5,7 @@ import { and, asc, eq, inArray } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
+import { ConfirmButton } from '@/components/ConfirmButton';
 import { CopyButton } from '@/components/CopyButton';
 import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -292,9 +293,13 @@ async function VoteSection({
             <form action={cancelVote}>
               <input type="hidden" name="songId" value={songId} />
               <input type="hidden" name="rehearsalId" value={rehearsalId} />
-              <Button type="submit" variant="ghost" size="sm">
+              <ConfirmButton
+                variant="ghost"
+                size="sm"
+                message="투표를 취소하면 지금까지의 표가 모두 사라져요. 취소할까요?"
+              >
                 투표 취소
-              </Button>
+              </ConfirmButton>
             </form>
           </div>
         )}

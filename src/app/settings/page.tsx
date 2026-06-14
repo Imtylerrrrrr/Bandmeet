@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
+import { ConfirmButton } from '@/components/ConfirmButton';
 import { db } from '@/lib/db';
 import { chatBindings } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
@@ -84,9 +85,13 @@ export default async function SettingsPage() {
               {binding && (
                 <form action={removeBinding}>
                   <input type="hidden" name="orgId" value={active.orgId} />
-                  <Button type="submit" variant="danger" size="sm">
+                  <ConfirmButton
+                    variant="danger"
+                    size="sm"
+                    message="단톡 연결을 해제할까요?"
+                  >
                     연결 해제
-                  </Button>
+                  </ConfirmButton>
                 </form>
               )}
             </div>

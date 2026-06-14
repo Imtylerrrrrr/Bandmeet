@@ -4,6 +4,7 @@ import { asc, eq } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
+import { ConfirmButton } from '@/components/ConfirmButton';
 import { db } from '@/lib/db';
 import { performances, teams } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
@@ -106,9 +107,13 @@ export default async function PerfDetailPage({
                     <form action={deleteTeam}>
                       <input type="hidden" name="performanceId" value={perf.id} />
                       <input type="hidden" name="id" value={t.id} />
-                      <Button type="submit" variant="danger" size="sm">
+                      <ConfirmButton
+                        variant="danger"
+                        size="sm"
+                        message="이 팀을 삭제하면 곡·배치·합주가 모두 사라져요. 삭제할까요?"
+                      >
                         삭제
-                      </Button>
+                      </ConfirmButton>
                     </form>
                   )}
                 </li>

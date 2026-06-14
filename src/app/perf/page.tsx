@@ -4,6 +4,7 @@ import { IconMicrophone2 } from '@tabler/icons-react';
 
 import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
+import { ConfirmButton } from '@/components/ConfirmButton';
 import { db } from '@/lib/db';
 import { performances } from '@/lib/db/schema';
 import { requireActiveOrg } from '@/lib/org';
@@ -117,9 +118,13 @@ export default async function PerfPage() {
                     <form action={deletePerformance}>
                       <input type="hidden" name="orgId" value={active.orgId} />
                       <input type="hidden" name="id" value={p.id} />
-                      <Button type="submit" variant="danger" size="sm">
+                      <ConfirmButton
+                        variant="danger"
+                        size="sm"
+                        message="이 공연을 삭제하면 팀·곡·합주·투표가 모두 사라져요. 삭제할까요?"
+                      >
                         삭제
-                      </Button>
+                      </ConfirmButton>
                     </form>
                   </div>
                 )}

@@ -2,6 +2,7 @@ import { asc, eq } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
+import { ConfirmButton } from '@/components/ConfirmButton';
 import { CopyButton } from '@/components/CopyButton';
 import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -87,18 +88,26 @@ export default async function MembersPage() {
                       <form action={removeMember}>
                         <input type="hidden" name="orgId" value={active.orgId} />
                         <input type="hidden" name="userId" value={m.userId} />
-                        <Button type="submit" variant="danger" size="sm">
+                        <ConfirmButton
+                          variant="danger"
+                          size="sm"
+                          message="이 멤버를 동아리에서 제거할까요?"
+                        >
                           제거
-                        </Button>
+                        </ConfirmButton>
                       </form>
                     </>
                   )}
                   {isSelf && (
                     <form action={leaveOrg}>
                       <input type="hidden" name="orgId" value={active.orgId} />
-                      <Button type="submit" variant="danger" size="sm">
+                      <ConfirmButton
+                        variant="danger"
+                        size="sm"
+                        message="정말 이 동아리에서 나갈까요?"
+                      >
                         나가기
-                      </Button>
+                      </ConfirmButton>
                     </form>
                   )}
                 </div>

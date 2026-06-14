@@ -4,6 +4,7 @@ import { asc, eq } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
 import { Button, ButtonLink } from '@/components/Button';
+import { ConfirmButton } from '@/components/ConfirmButton';
 import { db } from '@/lib/db';
 import {
   memberships,
@@ -209,9 +210,13 @@ export default async function TeamDetailPage({
                         </form>
                         <form action={deleteSong}>
                           <input type="hidden" name="songId" value={s.id} />
-                          <Button type="submit" variant="danger" size="sm">
+                          <ConfirmButton
+                            variant="danger"
+                            size="sm"
+                            message="이 곡을 삭제할까요? 관련 투표·합주도 함께 사라져요."
+                          >
                             삭제
-                          </Button>
+                          </ConfirmButton>
                         </form>
                       </div>
                     )}
