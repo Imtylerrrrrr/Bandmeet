@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { desc, eq } from 'drizzle-orm';
+import { IconMicrophone2 } from '@tabler/icons-react';
 
 import { AppHeader } from '@/components/AppHeader';
 import { db } from '@/lib/db';
@@ -25,79 +26,90 @@ export default async function PerfPage() {
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
-        <h1 className="text-lg font-bold">공연 ({rows.length})</h1>
+      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-6">
+        <h1 className="text-[19px] font-semibold tracking-tight">
+          공연 <span className="font-normal text-mut">{rows.length}</span>
+        </h1>
 
         {isAdmin && (
           <form
             action={createPerformance}
-            className="flex flex-col gap-3 rounded-lg border p-4"
+            className="flex flex-col gap-3 rounded-xl border bg-surface p-4"
           >
             <input type="hidden" name="orgId" value={active.orgId} />
-            <div className="text-sm font-semibold">공연 추가</div>
+            <div className="text-[15px] font-semibold">공연 추가</div>
             <input
               name="name"
               required
               placeholder="공연 이름 (예: 2026 봄 정기공연)"
-              className="rounded-md border px-3 py-2 text-sm"
+              className="rounded-lg border bg-surface px-3 py-2 text-sm transition-colors duration-150 hover:border-line-strong"
             />
             <div className="flex flex-wrap gap-3">
-              <label className="flex flex-col text-xs text-gray-500">
+              <label className="flex flex-col gap-1 text-xs text-mut">
                 공연일
-                <input name="performDate" type="date" className="rounded-md border px-2 py-1 text-sm" />
+                <input
+                  name="performDate"
+                  type="date"
+                  className="rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong"
+                />
               </label>
-              <label className="flex flex-col text-xs text-gray-500">
+              <label className="flex flex-col gap-1 text-xs text-mut">
                 투표 마감
                 <input
                   name="deadline"
                   type="datetime-local"
-                  className="rounded-md border px-2 py-1 text-sm"
+                  className="rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong"
                 />
               </label>
             </div>
-            <button className="self-start rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">
+            <button className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity duration-150 hover:opacity-90">
               추가
             </button>
           </form>
         )}
 
         {rows.length === 0 ? (
-          <p className="text-sm text-gray-500">아직 공연이 없습니다.</p>
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-surface px-6 py-12 text-center">
+            <IconMicrophone2 size={26} stroke={1.5} className="text-faint" />
+            <p className="text-sm text-mut">아직 공연이 없어요.</p>
+            {isAdmin && <p className="text-xs text-faint">위에서 첫 공연을 추가해 보세요.</p>}
+          </div>
         ) : (
           <ul className="flex flex-col gap-2">
             {rows.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between rounded-lg border p-4"
+                className="flex items-center justify-between gap-3 rounded-xl border bg-surface p-4 transition-colors duration-150 hover:bg-hover"
               >
-                <Link href={`/perf/${p.id}`} className="flex-1 hover:underline">
-                  <div className="font-semibold">
+                <Link href={`/perf/${p.id}`} className="flex-1">
+                  <div className="flex items-center gap-2 font-medium">
                     {p.name}
                     {p.archivedAt && (
-                      <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">
+                      <span className="rounded-md bg-hover px-1.5 py-0.5 text-xs font-medium text-mut">
                         아카이브
                       </span>
                     )}
                   </div>
-                  <div className="mt-0.5 text-xs text-gray-500">
+                  <div className="mt-0.5 text-xs tabular-nums text-mut">
                     {p.performDate ? `공연일 ${p.performDate}` : '공연일 미정'}
-                    {p.deadline &&
-                      ` · 마감 ${p.deadline.toLocaleString('ko-KR')}`}
+                    {p.deadline && ` · 마감 ${p.deadline.toLocaleString('ko-KR')}`}
                   </div>
                 </Link>
                 {isAdmin && (
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 text-xs">
                     <form action={p.archivedAt ? unarchivePerformance : archivePerformance}>
                       <input type="hidden" name="orgId" value={active.orgId} />
                       <input type="hidden" name="id" value={p.id} />
-                      <button className="text-xs text-gray-600 hover:underline">
+                      <button className="font-medium text-mut transition-colors duration-150 hover:text-ink">
                         {p.archivedAt ? '복원' : '아카이브'}
                       </button>
                     </form>
                     <form action={deletePerformance}>
                       <input type="hidden" name="orgId" value={active.orgId} />
                       <input type="hidden" name="id" value={p.id} />
-                      <button className="text-xs text-red-600 hover:underline">삭제</button>
+                      <button className="font-medium text-danger-text transition-opacity duration-150 hover:opacity-70">
+                        삭제
+                      </button>
                     </form>
                   </div>
                 )}
