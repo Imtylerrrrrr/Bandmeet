@@ -29,7 +29,7 @@ export default async function NotificationsPage() {
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-2xl flex-col gap-4 px-6 py-6">
+      <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6 sm:px-6">
         <div className="flex items-center justify-between">
           <h1 className="flex items-center gap-2 text-[19px] font-semibold tracking-tight">
             알림

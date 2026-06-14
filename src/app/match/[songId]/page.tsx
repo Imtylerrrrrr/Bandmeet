@@ -74,7 +74,7 @@ export default async function MatchPage({
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
+      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6">
         <div>
           <Link href={`/team/${song.teamId}`} className="text-xs text-mut hover:underline">
             ← 팀으로
@@ -149,7 +149,7 @@ function ConfirmedSection({
                 <form action={summon}>
                   <input type="hidden" name="songId" value={songId} />
                   <input type="hidden" name="rehearsalId" value={r.id} />
-                  <button className="rounded-lg bg-primary px-3 py-1 text-xs font-medium text-white hover:opacity-90">
+                  <button className="rounded-lg bg-primary px-3 py-2 text-xs font-medium text-white hover:opacity-90">
                     단톡 소집 보내기
                   </button>
                 </form>
@@ -211,7 +211,7 @@ async function RecommendSection({ songId, isAdmin }: { songId: string; isAdmin: 
               type="datetime-local"
               name="closeAt"
               defaultValue={defaultClose}
-              className="mt-1 w-fit rounded-md border px-2 py-1 text-sm"
+              className="mt-1 w-full rounded-md border bg-surface px-2 py-2 text-sm sm:w-fit"
             />
           </label>
           <button className="self-start rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90">
@@ -276,7 +276,7 @@ async function VoteSection({
           투표 중 · 마감 {vote.voteCloseAt.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
         </p>
         {isAdmin && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <form action={confirmVote}>
               <input type="hidden" name="songId" value={songId} />
               <input type="hidden" name="rehearsalId" value={rehearsalId} />
@@ -317,7 +317,7 @@ async function VoteSection({
             return (
               <li
                 key={o.id}
-                className="flex flex-wrap items-center gap-3 rounded-lg border p-3 text-sm"
+                className="flex flex-col gap-2 rounded-lg border p-3 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
               >
                 <span className="font-medium">{fmtSlot(slot, o.durationMin)}</span>
                 <span className="text-xs text-faint">
@@ -341,7 +341,7 @@ async function VoteSection({
                     <select
                       name={`rank_${o.id}`}
                       defaultValue={String(myRank.get(o.id) ?? '')}
-                      className="rounded-md border bg-surface px-2 py-1 text-sm"
+                      className="rounded-md border bg-surface px-2 py-2 text-sm"
                     >
                       <option value="">—</option>
                       <option value="1">1순위</option>

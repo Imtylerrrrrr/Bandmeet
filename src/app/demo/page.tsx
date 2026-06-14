@@ -152,7 +152,7 @@ export default function DemoPage() {
               ].map((o) => (
                 <li
                   key={o.label}
-                  className="flex flex-wrap items-center gap-3 rounded-lg border p-3 text-sm"
+                  className="flex flex-col gap-2 rounded-lg border p-3 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
                 >
                   <span className="font-medium tabular-nums">{o.label}</span>
                   <span className="text-xs text-faint">{o.t}</span>

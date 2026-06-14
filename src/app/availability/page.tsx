@@ -43,7 +43,7 @@ export default async function AvailabilityPage() {
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-3xl flex-col gap-8 px-6 py-6">
+      <main className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-6 sm:px-6">
         <div className="flex flex-col gap-1">
           <h1 className="text-[19px] font-semibold tracking-tight">되는 시간</h1>
           <p className="text-sm text-mut">

@@ -99,7 +99,7 @@ export default async function CalendarPage({
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-[1100px] flex-col gap-5 px-6 py-6">
+      <main className="mx-auto flex max-w-[1100px] flex-col gap-5 px-4 py-6 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-[19px] font-semibold tracking-tight">합주실 캘린더</h1>
           <div className="inline-flex rounded-lg bg-hover p-0.5">
@@ -123,7 +123,7 @@ export default async function CalendarPage({
             <Link
               href={`/calendar?view=${view}&date=${prevDate}`}
               aria-label="이전"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
             >
               <IconChevronLeft size={17} stroke={1.5} />
             </Link>
@@ -136,7 +136,7 @@ export default async function CalendarPage({
             <Link
               href={`/calendar?view=${view}&date=${nextDate}`}
               aria-label="다음"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
             >
               <IconChevronRight size={17} stroke={1.5} />
             </Link>

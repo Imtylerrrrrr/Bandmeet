@@ -32,7 +32,7 @@ export default async function Home() {
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-[1100px] flex-col gap-6 px-6 py-6">
+      <main className="mx-auto flex max-w-[1100px] flex-col gap-6 px-4 py-6 sm:px-6">
         <section className="flex flex-col gap-0.5">
           <h1 className="text-[19px] font-semibold tracking-tight">{active.orgName}</h1>
           <p className="text-sm text-mut">내 이번 주 일정</p>

@@ -1,6 +1,7 @@
 import { asc, eq } from 'drizzle-orm';
 
 import { AppHeader } from '@/components/AppHeader';
+import { Button } from '@/components/Button';
 import { CopyButton } from '@/components/CopyButton';
 import { requireUser } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -27,7 +28,7 @@ export default async function MembersPage() {
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-6">
+      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6">
         <h1 className="text-[19px] font-semibold tracking-tight">
           멤버 <span className="font-normal text-mut">{rows.length}</span>
         </h1>
@@ -53,7 +54,7 @@ export default async function MembersPage() {
             return (
               <li
                 key={m.userId}
-                className="flex items-center gap-3 border-b py-2.5 last:border-b-0"
+                className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b py-2.5 last:border-b-0"
               >
                 <Avatar name={m.name} />
                 <span className="font-medium">{m.name}</span>
@@ -68,7 +69,7 @@ export default async function MembersPage() {
                   {m.role === 'admin' ? '운영진' : '부원'}
                 </span>
 
-                <div className="ml-auto flex items-center gap-3 text-xs">
+                <div className="ml-auto flex items-center gap-2">
                   {isAdmin && !isSelf && (
                     <>
                       <form action={setMemberRole}>
@@ -79,25 +80,25 @@ export default async function MembersPage() {
                           name="role"
                           value={m.role === 'admin' ? 'member' : 'admin'}
                         />
-                        <button className="font-medium text-primary transition-opacity duration-150 hover:opacity-70">
+                        <Button type="submit" variant="ghost" size="sm">
                           {m.role === 'admin' ? '부원으로' : '운영진으로'}
-                        </button>
+                        </Button>
                       </form>
                       <form action={removeMember}>
                         <input type="hidden" name="orgId" value={active.orgId} />
                         <input type="hidden" name="userId" value={m.userId} />
-                        <button className="font-medium text-danger-text transition-opacity duration-150 hover:opacity-70">
+                        <Button type="submit" variant="danger" size="sm">
                           제거
-                        </button>
+                        </Button>
                       </form>
                     </>
                   )}
                   {isSelf && (
                     <form action={leaveOrg}>
                       <input type="hidden" name="orgId" value={active.orgId} />
-                      <button className="font-medium text-danger-text transition-opacity duration-150 hover:opacity-70">
+                      <Button type="submit" variant="danger" size="sm">
                         나가기
-                      </button>
+                      </Button>
                     </form>
                   )}
                 </div>

@@ -79,7 +79,7 @@ export function AvailabilityGrid({
   return (
     <div className="flex flex-col gap-4">
       {/* 브러시 + 요약 + 저장 */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex items-center gap-1.5">
           <BrushButton dot="bg-ok-paint" label="가능" active={brush === 'green'} onClick={() => setBrush('green')} />
           <BrushButton dot="bg-warn-paint" label="되면" active={brush === 'yellow'} onClick={() => setBrush('yellow')} />

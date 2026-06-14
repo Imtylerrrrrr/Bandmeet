@@ -9,7 +9,7 @@ export default async function LoginPage() {
   if (await getUser()) redirect('/');
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-canvas p-8">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-canvas p-4 sm:p-8">
       <div className="flex flex-col items-center gap-3 text-center">
         <Logo size={56} />
         <div>

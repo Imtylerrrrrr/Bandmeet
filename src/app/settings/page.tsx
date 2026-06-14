@@ -19,7 +19,7 @@ export default async function SettingsPage() {
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-2xl flex-col gap-6 px-6 py-6">
+      <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6 sm:px-6">
         <h1 className="text-[19px] font-semibold tracking-tight">설정</h1>
 
         <section className="flex flex-col gap-3">
@@ -48,14 +48,14 @@ export default async function SettingsPage() {
 
           {isAdmin ? (
             <div className="flex flex-col gap-2">
-              <form action={setBinding} className="flex gap-2">
+              <form action={setBinding} className="flex flex-col gap-2 sm:flex-row">
                 <input type="hidden" name="orgId" value={active.orgId} />
                 <input
                   name="roomName"
                   required
                   defaultValue={binding?.roomName ?? ''}
                   placeholder="단톡방 이름"
-                  className="flex-1 rounded-lg border bg-surface px-3 py-2 text-sm transition-colors duration-150 hover:border-line-strong"
+                  className="w-full rounded-lg border bg-surface px-3 py-2 text-sm transition-colors duration-150 hover:border-line-strong sm:flex-1"
                 />
                 <Button type="submit" variant="primary">
                   연결

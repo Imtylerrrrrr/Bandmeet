@@ -103,7 +103,7 @@ export function ExceptionEditor({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <input
           type="date"
           value={date}
@@ -111,7 +111,7 @@ export function ExceptionEditor({
             setDate(e.target.value || todayStr());
             setSavedMsg(null);
           }}
-          className="rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong"
+          className="w-full rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong sm:w-auto"
         />
         <span className="text-sm text-mut">{WEEKDAYS[wd]}요일</span>
         <div className="ml-auto flex items-center gap-3">

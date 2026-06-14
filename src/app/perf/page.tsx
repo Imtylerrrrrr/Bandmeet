@@ -28,7 +28,7 @@ export default async function PerfPage() {
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-6">
+      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6">
         <h1 className="text-[19px] font-semibold tracking-tight">
           공연 <span className="font-normal text-mut">{rows.length}</span>
         </h1>
@@ -46,13 +46,13 @@ export default async function PerfPage() {
               placeholder="공연 이름 (예: 2026 봄 정기공연)"
               className="rounded-lg border bg-surface px-3 py-2 text-sm transition-colors duration-150 hover:border-line-strong"
             />
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <label className="flex flex-col gap-1 text-xs text-mut">
                 공연 시작일
                 <input
                   name="performDate"
                   type="date"
-                  className="rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong"
+                  className="w-full rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong sm:w-auto"
                 />
               </label>
               <label className="flex flex-col gap-1 text-xs text-mut">
@@ -60,7 +60,7 @@ export default async function PerfPage() {
                 <input
                   name="performEndDate"
                   type="date"
-                  className="rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong"
+                  className="w-full rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong sm:w-auto"
                 />
               </label>
               <label className="flex flex-col gap-1 text-xs text-mut">
@@ -68,7 +68,7 @@ export default async function PerfPage() {
                 <input
                   name="deadline"
                   type="datetime-local"
-                  className="rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong"
+                  className="w-full rounded-lg border bg-surface px-2.5 py-1.5 text-sm tabular-nums transition-colors duration-150 hover:border-line-strong sm:w-auto"
                 />
               </label>
             </div>
@@ -79,7 +79,7 @@ export default async function PerfPage() {
         )}
 
         {rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-surface px-6 py-12 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-surface px-4 py-12 text-center sm:px-6">
             <IconMicrophone2 size={26} stroke={1.5} className="text-faint" />
             <p className="text-sm text-mut">아직 공연이 없어요.</p>
             {isAdmin && <p className="text-xs text-faint">위에서 첫 공연을 추가해 보세요.</p>}
@@ -89,7 +89,7 @@ export default async function PerfPage() {
             {rows.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between gap-3 rounded-xl border bg-surface p-4 transition-colors duration-150 hover:bg-hover"
+                className="flex flex-col gap-3 rounded-xl border bg-surface p-4 transition-colors duration-150 hover:bg-hover sm:flex-row sm:items-center sm:justify-between"
               >
                 <Link href={`/perf/${p.id}`} className="flex-1">
                   <div className="flex items-center gap-2 font-medium">

@@ -72,7 +72,7 @@ export default async function TeamDetailPage({
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-3xl flex-col gap-8 p-6">
+      <main className="mx-auto flex max-w-3xl flex-col gap-8 p-4 sm:p-6">
         <div>
           {perf && (
             <Link
@@ -118,11 +118,11 @@ export default async function TeamDetailPage({
             </ul>
           )}
           {isAdmin && !archived && candidates.length > 0 && (
-            <form action={addTeamMember} className="flex gap-2">
+            <form action={addTeamMember} className="flex flex-col gap-2 sm:flex-row">
               <input type="hidden" name="teamId" value={team.id} />
               <select
                 name="userId"
-                className="rounded-md border px-2 py-1 text-sm"
+                className="w-full rounded-lg border bg-surface px-2.5 py-2 text-sm sm:w-auto"
                 defaultValue=""
               >
                 <option value="" disabled>
@@ -155,13 +155,13 @@ export default async function TeamDetailPage({
           </div>
 
           {isAdmin && !archived && (
-            <form action={createSong} className="flex gap-2">
+            <form action={createSong} className="flex flex-col gap-2 sm:flex-row">
               <input type="hidden" name="teamId" value={team.id} />
               <input
                 name="title"
                 required
                 placeholder="곡 제목"
-                className="flex-1 rounded-md border px-3 py-2 text-sm"
+                className="w-full rounded-lg border bg-surface px-3 py-2 text-sm sm:flex-1"
               />
               <Button type="submit" variant="primary">
                 추가
@@ -176,7 +176,7 @@ export default async function TeamDetailPage({
               {songRows.map((s) => (
                 <li
                   key={s.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <span className="font-medium">
                     {s.title}

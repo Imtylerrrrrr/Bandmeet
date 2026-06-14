@@ -36,7 +36,7 @@ export default async function PerfDetailPage({
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
+      <main className="mx-auto flex max-w-3xl flex-col gap-6 p-4 sm:p-6">
         <div>
           <Link href="/perf" className="text-xs text-mut hover:underline">
             ← 공연 목록

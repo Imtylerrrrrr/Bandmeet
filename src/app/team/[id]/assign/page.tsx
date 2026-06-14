@@ -72,7 +72,7 @@ export default async function AssignPage({
   return (
     <>
       <AppHeader active={active} all={all} />
-      <main className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
+      <main className="mx-auto flex max-w-5xl flex-col gap-6 p-4 sm:p-6">
         <div>
           <Link href={`/team/${team.id}`} className="text-xs text-mut hover:underline">
             ← {team.name}
@@ -101,7 +101,7 @@ export default async function AssignPage({
                 <tr>
                   <th className="sticky left-0 z-10 bg-surface p-2 text-left">곡 \ 사람</th>
                   {members.map((m) => (
-                    <th key={m.userId} className="min-w-16 p-2 text-center font-medium">
+                    <th key={m.userId} className="min-w-12 p-2 text-center font-medium">
                       {m.name}
                     </th>
                   ))}

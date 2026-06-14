@@ -11,7 +11,7 @@ export default async function OnboardingPage() {
   if ((await getMyOrgs(user.id)).length > 0) redirect('/');
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 bg-canvas p-8">
+    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 bg-canvas p-4 sm:p-8">
       <div className="flex items-center gap-3">
         <Logo size={36} />
         <div>
