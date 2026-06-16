@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-import { signInAsGuest, signInWithKakao } from '@/app/auth/actions';
+import { signInWithKakao, signInWithPassword } from '@/app/auth/actions';
 import { getUser } from '@/lib/auth';
 import { Logo } from '@/components/Logo';
 
@@ -33,21 +33,44 @@ export default async function LoginPage() {
           <span className="h-px flex-1 bg-line" />
         </div>
 
-        <form action={signInAsGuest} className="flex flex-col gap-2">
+        <form action={signInWithPassword} className="flex flex-col gap-2">
           <input
-            name="name"
+            name="identifier"
             required
-            maxLength={20}
-            placeholder="이름 (예: 홍길동)"
+            placeholder="아이디 또는 이메일"
+            autoComplete="username"
+            className="w-full rounded-lg border bg-surface px-3 py-2.5 text-sm transition-colors duration-150 hover:border-line-strong"
+          />
+          <input
+            name="password"
+            type="password"
+            required
+            placeholder="비밀번호"
+            autoComplete="current-password"
             className="w-full rounded-lg border bg-surface px-3 py-2.5 text-sm transition-colors duration-150 hover:border-line-strong"
           />
           <button
             type="submit"
-            className="w-full rounded-lg border bg-surface px-4 py-2.5 text-sm font-medium text-ink transition-colors duration-150 hover:bg-hover"
+            className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-opacity duration-150 hover:opacity-90"
           >
-            게스트로 이용하기
+            로그인
           </button>
         </form>
+
+        <div className="flex items-center justify-between text-sm text-mut">
+          <Link
+            href="/signup"
+            className="underline-offset-2 transition-colors hover:text-ink hover:underline"
+          >
+            회원가입
+          </Link>
+          <Link
+            href="/forgot-password"
+            className="underline-offset-2 transition-colors hover:text-ink hover:underline"
+          >
+            비밀번호 찾기
+          </Link>
+        </div>
 
         <Link
           href="/demo"

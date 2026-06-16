@@ -40,6 +40,8 @@ export const orgs = pgTable('orgs', {
 export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey(),
   name: text('name').notNull(),
+  // 자체 로그인 아이디(영소문자·숫자·_). 카카오 유저는 null. 로그인 시 이메일 해석용.
+  username: text('username').unique(),
   createdAt: createdAt(),
 });
 
