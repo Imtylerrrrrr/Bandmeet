@@ -2,9 +2,9 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import {
   IconCalendarMonth,
-  IconMicrophone2,
   IconClock,
   IconUsers,
+  IconChecks,
   IconBrush,
   IconChevronLeft,
   IconChevronRight,
@@ -14,11 +14,19 @@ import type { ComponentType } from 'react';
 
 import { AppHeader } from '@/components/AppHeader';
 import { WeekGrid } from '@/components/WeekGrid';
+import { AgendaList } from '@/components/AgendaList';
 import { requireUser } from '@/lib/auth';
 import { detectConflicts } from '@/lib/calendar/conflicts';
 import { loadPersonalWeek } from '@/lib/calendar/load';
+import { loadHomeStats } from '@/lib/home/load';
 import { getActiveOrg } from '@/lib/org';
-import { addDays, isValidDate, kstDateStr, kstWeekday } from '@/lib/matching/slots';
+import {
+  addDays,
+  dateHourToSlot,
+  isValidDate,
+  kstDateStr,
+  kstWeekday,
+} from '@/lib/matching/slots';
 
 export default async function Home({
   searchParams,
@@ -40,8 +48,21 @@ export default async function Home({
   const prevWeek = addDays(weekStart, -7);
   const nextWeek = addDays(weekStart, 7);
 
-  const { bookings } = await loadPersonalWeek(active.orgId, user.id, weekStart);
+  const [{ bookings }, stats] = await Promise.all([
+    loadPersonalWeek(active.orgId, user.id, weekStart),
+    loadHomeStats(active.orgId, user.id),
+  ]);
   const report = detectConflicts(bookings);
+
+  // 다음 합주까지 남은 일수(KST 자정 기준).
+  const dDay = stats.next
+    ? Math.round(
+        (dateHourToSlot(kstDateStr(stats.next.startAt), 0) -
+          dateHourToSlot(todayStr, 0)) /
+          24,
+      )
+    : null;
+  const nextLabel = dDay === null ? '없음' : dDay <= 0 ? '오늘' : `D-${dDay}`;
 
   return (
     <>
@@ -85,7 +106,15 @@ export default async function Home({
           </div>
         </section>
 
-        <WeekGrid weekStart={weekStart} bookings={bookings} report={report} todayStr={todayStr} />
+        {/* 데스크탑: 주간 격자 / 모바일: 일정 리스트 */}
+        <div className="hidden sm:block">
+          <WeekGrid weekStart={weekStart} bookings={bookings} report={report} todayStr={todayStr} />
+        </div>
+        {bookings.length > 0 && (
+          <div className="sm:hidden">
+            <AgendaList weekStart={weekStart} bookings={bookings} report={report} todayStr={todayStr} />
+          </div>
+        )}
         {bookings.length === 0 && (
           <div className="flex flex-col items-center gap-2 py-6 text-center">
             <p className="text-sm text-mut">
@@ -101,39 +130,56 @@ export default async function Home({
           </div>
         )}
 
+        {/* 다음 행동 — 네비 복제가 아니라 내 상태. */}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Card href="/calendar" title="캘린더" desc="합주실 일정·충돌" Icon={IconCalendarMonth} />
-          <Card href="/perf" title="공연" desc="공연·팀·곡 배치" Icon={IconMicrophone2} />
-          <Card href="/availability" title="내 시간" desc="되는 시간 칠하기" Icon={IconClock} />
-          <Card href="/members" title="멤버" desc="부원·초대코드" Icon={IconUsers} />
+          <StatCard href="/availability" label="되는 시간" value="칠하기 →" Icon={IconBrush} accent />
+          <StatCard href="/perf" label="투표 대기" value={`${stats.pendingVotes}건`} Icon={IconChecks} dim={stats.pendingVotes === 0} />
+          <StatCard href="/calendar" label="다음 합주" value={nextLabel} Icon={IconClock} dim={!stats.next} />
+          <StatCard href="/members" label="멤버" value={`${stats.memberCount}명`} Icon={IconUsers} />
         </section>
       </main>
     </>
   );
 }
 
-function Card({
+function StatCard({
   href,
-  title,
-  desc,
+  label,
+  value,
   Icon,
+  accent = false,
+  dim = false,
 }: {
   href: string;
-  title: string;
-  desc: string;
+  label: string;
+  value: string;
   Icon: ComponentType<IconProps>;
+  accent?: boolean;
+  dim?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="group flex flex-col gap-2 rounded-xl border bg-surface p-4 transition-all duration-150 hover:-translate-y-px hover:bg-hover hover:shadow-sm"
+      className={`group flex flex-col gap-2 rounded-xl border bg-surface p-4 transition-all duration-150 hover:-translate-y-px hover:bg-hover hover:shadow-sm ${
+        accent ? 'border-primary/40' : ''
+      }`}
     >
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
+      <span
+        className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+          accent ? 'bg-primary text-white' : 'bg-primary-soft text-primary'
+        }`}
+      >
         <Icon size={18} stroke={1.5} />
       </span>
       <div>
-        <div className="text-sm font-semibold">{title}</div>
-        <div className="mt-0.5 text-xs text-mut">{desc}</div>
+        <div className="text-xs text-mut">{label}</div>
+        <div
+          className={`mt-0.5 text-[15px] font-semibold tabular-nums ${
+            dim ? 'text-faint' : 'text-ink'
+          }`}
+        >
+          {value}
+        </div>
       </div>
     </Link>
   );
