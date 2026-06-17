@@ -251,7 +251,7 @@ function DemoAvailability() {
   const yellow = new Set(['4-17', '4-18', '5-16']);
 
   return (
-    <div className="overflow-x-auto">
+    <div className="min-w-0 overflow-x-auto">
       <div
         className="inline-grid gap-[3px]"
         style={{ gridTemplateColumns: '2rem repeat(7, minmax(2rem, 1fr))' }}

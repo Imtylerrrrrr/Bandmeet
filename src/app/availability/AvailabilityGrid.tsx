@@ -106,7 +106,7 @@ export function AvailabilityGrid({
       </div>
 
       {/* 격자 */}
-      <div className="overflow-x-auto">
+      <div className="min-w-0 overflow-x-auto">
         <div
           className="inline-grid select-none gap-[3px]"
           style={{

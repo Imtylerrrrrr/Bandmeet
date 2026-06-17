@@ -31,7 +31,7 @@ export function TimeGrid({
   const minW = n === 1 ? 280 : 640;
 
   return (
-    <div className="overflow-x-auto">
+    <div className="min-w-0 overflow-x-auto">
       <div
         className="grid text-xs"
         style={{

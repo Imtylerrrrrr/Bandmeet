@@ -95,7 +95,7 @@ export default async function AssignPage({
             </ButtonLink>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="min-w-0 overflow-x-auto">
             <table className="border-collapse text-sm">
               <thead>
                 <tr>

@@ -6,6 +6,8 @@ import {
   IconClock,
   IconUsers,
   IconBrush,
+  IconChevronLeft,
+  IconChevronRight,
   type IconProps,
 } from '@tabler/icons-react';
 import type { ComponentType } from 'react';
@@ -16,16 +18,28 @@ import { requireUser } from '@/lib/auth';
 import { detectConflicts } from '@/lib/calendar/conflicts';
 import { loadPersonalWeek } from '@/lib/calendar/load';
 import { getActiveOrg } from '@/lib/org';
-import { addDays, kstDateStr, kstWeekday } from '@/lib/matching/slots';
+import { addDays, isValidDate, kstDateStr, kstWeekday } from '@/lib/matching/slots';
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ week?: string }>;
+}) {
   const ctx = await getActiveOrg();
   if (!ctx) redirect('/onboarding');
   const { active, all } = ctx;
   const user = await requireUser();
+  const sp = await searchParams;
 
   const todayStr = kstDateStr(new Date());
-  const weekStart = addDays(todayStr, -kstWeekday(todayStr)); // 이번 주 일요일
+  // ?week= 기준일(무효면 오늘) → 그 주 일요일. 없으면 이번 주.
+  const base = sp.week && isValidDate(sp.week) ? sp.week : todayStr;
+  const weekStart = addDays(base, -kstWeekday(base));
+  const thisWeekStart = addDays(todayStr, -kstWeekday(todayStr));
+  const isThisWeek = weekStart === thisWeekStart;
+  const prevWeek = addDays(weekStart, -7);
+  const nextWeek = addDays(weekStart, 7);
+
   const { bookings } = await loadPersonalWeek(active.orgId, user.id, weekStart);
   const report = detectConflicts(bookings);
 
@@ -33,15 +47,50 @@ export default async function Home() {
     <>
       <AppHeader active={active} all={all} />
       <main className="mx-auto flex max-w-[1100px] flex-col gap-6 px-4 py-6 sm:px-6">
-        <section className="flex flex-col gap-0.5">
+        <section className="flex flex-col gap-2">
           <h1 className="text-[19px] font-semibold tracking-tight">{active.orgName}</h1>
-          <p className="text-sm text-mut">내 이번 주 일정</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium tabular-nums text-mut">
+              {isThisWeek ? '내 이번 주 일정' : `${weekStart} ~ ${addDays(weekStart, 6)}`}
+            </p>
+            <div className="flex items-center gap-1">
+              <Link
+                href={`/?week=${prevWeek}`}
+                aria-label="이전 주"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
+              >
+                <IconChevronLeft size={17} stroke={1.5} />
+              </Link>
+              <Link
+                href="/"
+                className="rounded-lg border px-3 py-1.5 text-[13px] font-medium text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
+              >
+                이번 주
+              </Link>
+              <Link
+                href={`/?week=${nextWeek}`}
+                aria-label="다음 주"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
+              >
+                <IconChevronRight size={17} stroke={1.5} />
+              </Link>
+              <Link
+                href="/calendar?view=month"
+                className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-[13px] font-medium text-primary transition-colors duration-150 hover:bg-primary-soft"
+              >
+                <IconCalendarMonth size={15} stroke={1.5} />
+                월별
+              </Link>
+            </div>
+          </div>
         </section>
 
         <WeekGrid weekStart={weekStart} bookings={bookings} report={report} todayStr={todayStr} />
         {bookings.length === 0 && (
           <div className="flex flex-col items-center gap-2 py-6 text-center">
-            <p className="text-sm text-mut">이번 주 확정된 합주가 없어요.</p>
+            <p className="text-sm text-mut">
+              {isThisWeek ? '이번 주' : '이 주에'} 확정된 합주가 없어요.
+            </p>
             <Link
               href="/availability"
               className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-medium text-primary transition-colors duration-150 hover:bg-primary-soft"

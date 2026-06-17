@@ -13,7 +13,7 @@ import { NAV_ITEMS, SETTINGS_ITEM, isActive } from "./nav-items";
 
 const ROLE_LABEL: Record<string, string> = { admin: "운영진", member: "부원" };
 
-// 모바일(<md) 햄버거 → 좌측 슬라이드 드로어. 네비·org 전환·로그아웃을 한곳에.
+// lg 미만(<1024) 햄버거 → 좌측 슬라이드 드로어. 네비·org 전환·로그아웃을 한곳에.
 export function MobileNav({
   isAdmin,
   active,
@@ -42,7 +42,7 @@ export function MobileNav({
   }, [open]);
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
         type="button"
         aria-label="메뉴 열기"

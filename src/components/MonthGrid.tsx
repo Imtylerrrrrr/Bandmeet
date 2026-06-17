@@ -34,7 +34,7 @@ export function MonthGrid({
   for (const arr of byDay.values()) arr.sort((a, b) => a.start - b.start);
 
   return (
-    <div className="overflow-x-auto">
+    <div className="min-w-0 overflow-x-auto">
       <div className="grid min-w-[560px] grid-cols-7 overflow-hidden rounded-xl border-l border-t text-xs">
         {/* 요일 헤더 */}
         {WD.map((w) => (

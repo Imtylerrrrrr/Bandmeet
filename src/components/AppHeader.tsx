@@ -31,8 +31,8 @@ export function AppHeader({
           </span>
         </div>
 
-        {/* 데스크탑(md+): 인라인 네비 + org 전환 + 로그아웃 */}
-        <div className="hidden items-center gap-2 md:flex">
+        {/* 데스크탑(lg+): 인라인 네비 + org 전환 + 로그아웃. lg 미만은 햄버거 드로어. */}
+        <div className="hidden items-center gap-2 lg:flex">
           <NavLinks isAdmin={active.role === 'admin'} />
 
           <div className="flex items-center gap-1.5">
@@ -71,7 +71,7 @@ export function AppHeader({
           </div>
         </div>
 
-        {/* 모바일(<md): 햄버거 → 드로어 */}
+        {/* lg 미만(<1024): 햄버거 → 드로어 */}
         <MobileNav
           isAdmin={active.role === 'admin'}
           active={active}
