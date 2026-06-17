@@ -8,6 +8,7 @@ import {
 
 import { AppHeader } from '@/components/AppHeader';
 import { WeekGrid } from '@/components/WeekGrid';
+import { AgendaList } from '@/components/AgendaList';
 import { TimeGrid } from '@/components/TimeGrid';
 import { MonthGrid } from '@/components/MonthGrid';
 import { detectConflicts, type Booking } from '@/lib/calendar/conflicts';
@@ -123,7 +124,7 @@ export default async function CalendarPage({
             <Link
               href={`/calendar?view=${view}&date=${prevDate}`}
               aria-label="이전"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink sm:h-9 sm:w-9"
             >
               <IconChevronLeft size={17} stroke={1.5} />
             </Link>
@@ -136,7 +137,7 @@ export default async function CalendarPage({
             <Link
               href={`/calendar?view=${view}&date=${nextDate}`}
               aria-label="다음"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border text-mut transition-colors duration-150 hover:bg-hover hover:text-ink sm:h-9 sm:w-9"
             >
               <IconChevronRight size={17} stroke={1.5} />
             </Link>
@@ -182,7 +183,15 @@ export default async function CalendarPage({
           <TimeGrid days={[date]} bookings={bookings} report={report} todayStr={todayStr} />
         )}
         {view === 'week' && (
-          <WeekGrid weekStart={weekStart} bookings={bookings} report={report} todayStr={todayStr} />
+          <>
+            {/* 데스크탑: 주간 격자 / 모바일: 일정 리스트(가로 잘림 방지, 홈과 통일) */}
+            <div className="hidden sm:block">
+              <WeekGrid weekStart={weekStart} bookings={bookings} report={report} todayStr={todayStr} />
+            </div>
+            <div className="sm:hidden">
+              <AgendaList weekStart={weekStart} bookings={bookings} report={report} todayStr={todayStr} />
+            </div>
+          </>
         )}
         {view === 'month' && (
           <MonthGrid

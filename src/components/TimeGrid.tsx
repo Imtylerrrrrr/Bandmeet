@@ -106,7 +106,7 @@ export function TimeGrid({
               }}
               title={`${b.title} ${top}:00–${bottom}:00`}
             >
-              <div className="font-medium">{b.title}</div>
+              <div className="truncate font-medium">{b.title}</div>
               <div className="tabular-nums opacity-80">
                 {top}:00–{bottom}:00
               </div>
