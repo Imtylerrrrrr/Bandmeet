@@ -15,8 +15,8 @@
   --color-line-strong: #e0e0e0; /* 강조 테두리 */
   --color-hover: #f4f4f5; /* hover 배경 */
   --color-ink: #171717; /* 본문 */
-  --color-mut: #737373; /* 보조 */
-  --color-faint: #a3a3a3; /* 힌트 */
+  --color-mut: #5f5f5f; /* 보조 — WCAG AA(틴트 배경 포함) 통과하도록 어둡게 */
+  --color-faint: #707070; /* 힌트 — 의미 텍스트도 읽히도록 4.5:1 이상 */
 
   /* 브랜드 */
   --color-primary: #5b4be6; /* 주요 버튼·오늘·활성 메뉴 */
@@ -52,6 +52,19 @@
     color: var(--color-ink);
     font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
       sans-serif;
+    line-height: 1.6; /* 본문 가독성 — 유틸리티(leading-*)는 그대로 우선 */
+    text-rendering: optimizeLegibility;
+    font-kerning: normal;
+  }
+
+  /* 제목은 줄 길이 균형, 본문 단락은 고아줄 방지로 가독성 향상. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
 
   /* 키보드 포커스 링 일관화 */

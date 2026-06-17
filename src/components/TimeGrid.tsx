@@ -59,7 +59,7 @@ export function TimeGrid({
         {Array.from({ length: HOURS }, (_, r) => (
           <div
             key={`h${r}`}
-            className="border-r border-b pr-1.5 text-right text-[11px] tabular-nums text-faint sm:text-[10px]"
+            className="border-r border-b pr-1.5 text-right text-[11px] tabular-nums text-mut"
             style={{ gridColumn: 1, gridRow: r + 2 }}
           >
             {START_HOUR + r}
@@ -107,7 +107,7 @@ export function TimeGrid({
               title={`${b.title} ${top}:00–${bottom}:00`}
             >
               <div className="font-medium">{b.title}</div>
-              <div className="tabular-nums opacity-70">
+              <div className="tabular-nums opacity-80">
                 {top}:00–{bottom}:00
               </div>
             </div>

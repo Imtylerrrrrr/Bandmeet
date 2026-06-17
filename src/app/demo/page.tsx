@@ -269,7 +269,7 @@ function DemoAvailability() {
         ))}
         {hours.map((h) => (
           <Fragment key={h}>
-            <div className="flex h-7 items-center justify-end pr-1.5 text-[10px] tabular-nums text-faint">
+            <div className="flex h-7 items-center justify-end pr-1.5 text-[11px] tabular-nums text-mut">
               {h}
             </div>
             {days.map((_, w) => {
